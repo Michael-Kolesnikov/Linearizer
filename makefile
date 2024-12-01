@@ -3,12 +3,11 @@ CC = gcc
 CFLAGS = -lfl
 
 # Define the output executable name
-TARGET = myparser
+TARGET = parser
 
 # Define source files
 BISON_FILE = parser.y
 FLEX_FILE = lexer.l
-C_FILES = main.c
 
 # Generated files
 BISON_C = parser.tab.c
@@ -19,7 +18,7 @@ FLEX_C = lex.yy.c
 all: $(TARGET)
 
 # Rule to build the final executable
-$(TARGET): $(C_FILES) $(BISON_C) $(FLEX_C)
+$(TARGET): $(BISON_C) $(FLEX_C)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 # Rule to generate Bison files
