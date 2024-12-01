@@ -1,5 +1,5 @@
 %{
-// #include "parser.tab.h"
+#include "parser.tab.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -32,42 +32,33 @@ int is_keyword(const char* word) {
 
 [a-zA-Z_][a-zA-Z0-9_]*   {
     if (is_keyword(yytext)) {
-        printf("KEYWORD: %s\n", yytext);
+        yylval.sval = strdup(yytext);
+        printf("KEYWORD ");
+        return KEYWORD;
     } else {
-        printf("IDENTIFIER: %s\n", yytext);
+        yylval.sval = strdup(yytext);
+        printf("IDENTIFIER ");
+        return IDENTIFIER;
     }
 }
 
-"#"[a-zA-Z]+.*          { printf("PREPROCESSOR: %s\n", yytext); }
-"//".*                  { printf("COMMENT: %s\n", yytext); }
-"/\\*".*?"\\*/"         { printf("COMMENT: %s\n", yytext); }
+"#"[a-zA-Z]+.*          {yylval.sval = strdup(yytext); printf("PREPROCESSOR "); return PREPROCESSOR; }
+"//".*                  {yylval.sval = strdup(yytext); printf("COMMENT "); return COMMENT; }
+"/\\*".*?"\\*/"         {yylval.sval = strdup(yytext); printf("COMMENT "); return COMMENT; }
 
-\"(\\.|[^"])*\"          { printf("STRING: %s\n", yytext); }
-\'(\\.|[^'])\'           { printf("CHARACTER: %s\n", yytext); }
+\"(\\.|[^"])*\"          {yylval.sval = strdup(yytext); printf("STRING "); return STRING; }
+\'(\\.|[^'])\'           {yylval.sval = strdup(yytext); printf("CHARACTER "); return CHARACTER; }
 
-[0-9]+ { printf("NUMBER: %s\n", yytext); }
-[0-9]+\.[0-9]+ { printf("FLOAT: %s\n", yytext); }
+[0-9]+ {yylval.sval = strdup(yytext); printf("NUMBER "); return NUMBER; }
+[0-9]+\.[0-9]+ {yylval.sval = strdup(yytext); printf("FLOAT "); return FLOAT; }
 
-"=="|"!="|"<="|">="     { printf("OPERATOR: %s\n", yytext); }
-[+\-*/%<>=&|!~^]+       { printf("OPERATOR: %s\n", yytext); }
-[{}();,.\[\]]           { printf("PUNCTUATION: %s\n", yytext); }
+"=="|"!="|"<="|">="     {yylval.sval = strdup(yytext);printf("OPERATOR "); return OPERATOR; }
+[+\-*/%<>=&|!~^]+       {yylval.sval = strdup(yytext); printf("OPERATOR "); return OPERATOR; }
+[{}();,.\[\]]           {yylval.sval = strdup(yytext); printf("PUNCTUATION "); return PUNCTUATION; }
 
 [ \t\n\r]+ ;
 
-. { printf("UNKNOWN: %s\n", yytext); }
+. {printf("void"); return yytext[0]; }
 
 %%
 
-int main(int argc, char** argv) {
-    if (argc > 1) {
-        FILE *file = fopen(argv[1], "r");
-        if (!file) {
-            fprintf(stderr, "Error: Could not open file %s\n", argv[1]);
-            return 1;
-        }
-        // Set the input stream for Flex
-        yyin = file;
-    }
-    yylex();
-    return 0;
-}
