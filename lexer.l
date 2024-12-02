@@ -29,6 +29,17 @@ int is_keyword(const char* word) {
 %option noyywrap
 
 %%
+"if" {yylval.sval = strdup(yytext); printf("IF"); return IF; }
+"else" {yylval.sval = strdup(yytext); printf("ELSE"); return ELSE; }
+"int" {yylval.sval = strdup(yytext); printf("INT "); return INT; }
+"short" {yylval.sval = strdup(yytext); printf("SHORT"); return SHORT; }
+"char" {yylval.sval = strdup(yytext); printf("CHAR"); return CHAR; }
+"long" {yylval.sval = strdup(yytext); printf("LONG"); return LONG; }
+"float" {yylval.sval = strdup(yytext); printf("FLOAT"); return FLOAT; }
+"double" {yylval.sval = strdup(yytext); printf("DOUBLE"); return DOUBLE; }
+"signed" {yylval.sval = strdup(yytext); printf("SIGNED"); return SIGNED; }
+"usigned" {yylval.sval = strdup(yytext); printf("UNSIGNED"); return UNSIGNED; }
+"const" {yylval.sval = strdup(yytext); printf("CONST"); return CONST; }
 
 [a-zA-Z_][a-zA-Z0-9_]*   {
     if (is_keyword(yytext)) {
@@ -52,13 +63,36 @@ int is_keyword(const char* word) {
 [0-9]+ {yylval.sval = strdup(yytext); printf("NUMBER "); return NUMBER; }
 [0-9]+\.[0-9]+ {yylval.sval = strdup(yytext); printf("FLOAT "); return FLOAT; }
 
+
+";"                     {   printf(";"); return(';');    }
+("{"|"<%")              {   return('{');    }
+("}"|"%>")              {   return('}');    }
+","                     {   return(',');    }
+":"                     {   return(':');    }
+"="                     {   return('=');    }
+"("                     {   return('(');    }
+")"                     {   return(')');    }
+("["|"<:")              {   return('[');    }
+("]"|":>")              {   return(']');    }
+"."                     {   return('.');    }
+"&"                     {   return('&');    }
+"!"                     {   return('!');    }
+"~"                     {   return('~');    }
+"-"                     {   return('-');    }
+"+"                     {   return('+');    }
+"*"                     {   return('*');    }
+"/"                     {   return('/');    }
+"%"                     {   return('%');    }
+"<"                     {   return('<');    }
+">"                     {   return('>');    }
+"^"                     {   return('^');    }
+"|"                     {   return('|');    }
+"?"                     {   return('?');    }
+
 "=="|"!="|"<="|">="     {yylval.sval = strdup(yytext);printf("OPERATOR "); return OPERATOR; }
-[+\-*/%<>=&|!~^]+       {yylval.sval = strdup(yytext); printf("OPERATOR "); return OPERATOR; }
-[{}();,.\[\]]           {yylval.sval = strdup(yytext); printf("PUNCTUATION "); return PUNCTUATION; }
 
 [ \t\n\r]+ ;
-
-. {printf("void"); return yytext[0]; }
+. ;
 
 %%
 
