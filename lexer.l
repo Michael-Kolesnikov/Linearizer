@@ -60,8 +60,8 @@
 \"(\\.|[^"])*\"          { return STRING; }
 \'(\\.|[^'])\'           { return CHARACTER; }
 
-[0-9]+ { return NUMBER; }
-[0-9]+\.[0-9]+ { return FLOAT; }
+"0"|[0-9]+              { return I_CONST; }
+[0-9]+\.[0-9]+          { return F_CONST; }
 
 "..."					{ return ELLIPSIS; }
 ">>="					{ return RIGHT_ASSIGN; }
