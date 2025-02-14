@@ -63,6 +63,28 @@
 [0-9]+ { return NUMBER; }
 [0-9]+\.[0-9]+ { return FLOAT; }
 
+"..."					{ return ELLIPSIS; }
+">>="					{ return RIGHT_ASSIGN; }
+"<<="					{ return LEFT_ASSIGN; }
+"+="					{ return ADD_ASSIGN; }
+"-="					{ return SUB_ASSIGN; }
+"*="					{ return MUL_ASSIGN; }
+"/="					{ return DIV_ASSIGN; }
+"%="					{ return MOD_ASSIGN; }
+"&="					{ return AND_ASSIGN; }
+"^="					{ return XOR_ASSIGN; }
+"|="					{ return OR_ASSIGN; }
+">>"					{ return RIGHT_OP; }
+"<<"					{ return LEFT_OP; }
+"++"					{ return INCR_OP; }
+"--"					{ return DECR_OP; }
+"->"					{ return POINTER_OP; }
+"&&"					{ return AND_OP; }
+"||"					{ return OR_OP; }
+"<="					{ return LE_OP; }
+">="					{ return GE_OP; }
+"=="					{ return EQ_OP; }
+"!="					{ return NE_OP; }
 
 ";"                     {   return(';');    }
 ("{"|"<%")              {   return('{');    }
@@ -88,8 +110,6 @@
 "^"                     {   return('^');    }
 "|"                     {   return('|');    }
 "?"                     {   return('?');    }
-
-"=="|"!="|"<="|">="     { return OPERATOR; }
 
 [ \t\n\r]+ ;
 . ;
