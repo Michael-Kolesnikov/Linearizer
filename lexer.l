@@ -53,15 +53,15 @@
 "_Thread_local"         { return THREAD_LOCAL; }
 "__func__"              { return FUNC_NAME; }
 
+"0"|[0-9]+              { return I_CONST; }
+[0-9]+\.[0-9]+          { return F_CONST; }
+
 "#"[a-zA-Z]+.*          { return PREPROCESSOR; }
 "//".*                  { return COMMENT; }
 "/\\*".*?"\\*/"         { return COMMENT; }
 
-\"(\\.|[^"])*\"          { return STRING; }
-\'(\\.|[^'])\'           { return CHARACTER; }
-
-"0"|[0-9]+              { return I_CONST; }
-[0-9]+\.[0-9]+          { return F_CONST; }
+\"(\\.|[^"])*\"         { return STRING; }
+\'(\\.|[^'])\'          { return CHARACTER; }
 
 "..."					{ return ELLIPSIS; }
 ">>="					{ return RIGHT_ASSIGN; }
@@ -86,30 +86,30 @@
 "=="					{ return EQ_OP; }
 "!="					{ return NE_OP; }
 
-";"                     {   return(';');    }
-("{"|"<%")              {   return('{');    }
-("}"|"%>")              {   return('}');    }
-","                     {   return(',');    }
-":"                     {   return(':');    }
-"="                     {   return('=');    }
-"("                     {   return('(');    }
-")"                     {   return(')');    }
-("["|"<:")              {   return('[');    }
-("]"|":>")              {   return(']');    }
-"."                     {   return('.');    }
-"&"                     {   return('&');    }
-"!"                     {   return('!');    }
-"~"                     {   return('~');    }
-"-"                     {   return('-');    }
-"+"                     {   return('+');    }
-"*"                     {   return('*');    }
-"/"                     {   return('/');    }
-"%"                     {   return('%');    }
-"<"                     {   return('<');    }
-">"                     {   return('>');    }
-"^"                     {   return('^');    }
-"|"                     {   return('|');    }
-"?"                     {   return('?');    }
+";"                     { return(';'); }
+("{"|"<%")              { return('{'); }
+("}"|"%>")              { return('}'); }
+","                     { return(','); }
+":"                     { return(':'); }
+"="                     { return('='); }
+"("                     { return('('); }
+")"                     { return(')'); }
+("["|"<:")              { return('['); }
+("]"|":>")              { return(']'); }
+"."                     { return('.'); }
+"&"                     { return('&'); }
+"!"                     { return('!'); }
+"~"                     { return('~'); }
+"-"                     { return('-'); }
+"+"                     { return('+'); }
+"*"                     { return('*'); }
+"/"                     { return('/'); }
+"%"                     { return('%'); }
+"<"                     { return('<'); }
+">"                     { return('>'); }
+"^"                     { return('^'); }
+"|"                     { return('|'); }
+"?"                     { return('?'); }
 
 [ \t\n\r]+ ;
 . ;
