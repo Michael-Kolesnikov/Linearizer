@@ -2,6 +2,7 @@
 #include "parser.tab.h"
 #include <stdio.h>
 #include <string.h>
+int lineno = 1;
 %}
 
 %option noyywrap
@@ -111,7 +112,8 @@
 "|"                     { return('|'); }
 "?"                     { return('?'); }
 
-[ \t\n\r]+ ;
+"\n" { lineno += 1; }
+[ \t\r]+ ;
 . ;
 
 %%
