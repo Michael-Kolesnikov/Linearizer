@@ -1,76 +1,91 @@
 %{
-#include <stdio.h>
-
-extern FILE *yyin;
-extern FILE *yyout;
-int yylex();
-int yyerror(const char *s);
-extern char *yytext;
+    #include <stdio.h>
+    extern FILE *yyin;
+    extern FILE *yyout;
+    extern int yylex();
+    int yyerror(const char *s);
+    extern char *yytext;
+    extern int lineno;
 %}
 
-%union {
-    char *sval;
-}
+%token	IDENTIFIER I_CONST F_CONST FUNC_NAME SIZEOF
+%token	POINTER_OP INCR_OP DECR_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
+%token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
+%token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
+%token	XOR_ASSIGN OR_ASSIGN
+%token	TYPEDEF_NAME ENUMERATION_CONSTANT
 
-%token <sval> KEYWORD IDENTIFIER PREPROCESSOR COMMENT STRING CHARACTER NUMBER FLOAT OPERATOR PUNCTUATION
+%token	TYPEDEF EXTERN STATIC AUTO REGISTER INLINE
+%token	CONST RESTRICT VOLATILE
+%token	BOOL CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE VOID
+%token	COMPLEX IMAGINARY 
+%token	STRUCT UNION ENUM ELLIPSIS
 
-%type <sval> expression term
+%token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
+
+%token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
+%token COMMENT STRING CHARACTER PREPROCESSOR
+%start program
 %%
-program: /* Allow empty input */
-       | statement_list;
 
-statement_list: statement
-              | statement_list statement;
+program
+    : declaration_expression
+    ;
 
-statement: KEYWORD IDENTIFIER OPERATOR NUMBER PUNCTUATION {
-              fprintf(yyout, "%s %s %s %s%s\n", $1, $2, $3, $4, $5);
-              free($1);
-              free($2);
-              free($3);
-              free($4);
-              free($5);
-          }
-        | COMMENT {
-              fprintf(yyout, "%s\n", $1);
-              free($1);
-          };
-        | expression_statement
+declaration_expression
+    : declaration declaration_expression
+    | declaration
+    ;
 
+declaration
+    : decloration_specifiers ';'
+    | decloration_specifiers init_declorator ';'
+    ;
 
-expression_statement: IDENTIFIER OPERATOR expression PUNCTUATION { asprintf(&$<sval>$, "%s %s %s;", $1, $2, $3);
-    fprintf(yyout, "%s\n", $<sval>$);
-    free($1);
-    free($2);
-    free($3);
-    free($<sval>$);
-}
+decloration_specifiers
+    : type_specifiers decloration_specifiers
+    | type_specifiers
+    ;
 
-expression: expression OPERATOR term {
-    // Combine left expression, operator, and right term
-    asprintf(&$<sval>$, "%s %s %s", $1, $2, $3);
-    free($1);
-    free($2);
-    free($3);
-}
-| term {
-    $$ = $1; // Pass through term (it's already a string)
-};
+type_specifiers
+	: VOID
+	| CHAR
+	| SHORT
+	| INT
+	| LONG
+	| FLOAT
+	| DOUBLE
+	| SIGNED
+	| UNSIGNED
+	| BOOL
+	| COMPLEX
+	| IMAGINARY
+	| TYPEDEF_NAME		
+    ;
 
-term: IDENTIFIER {
-    $$ = strdup($1);
-}
-| NUMBER {
-    $$ = strdup($1);
-}
-| '(' expression ')' {
-    asprintf(&$<sval>$, "(%s)", $2);  // Add parentheses around the expression
-    free($2);
-};
+init_declorator
+    : declorator
+    ;
+
+declorator
+    : pointer direct_declorator
+    | direct_declorator
+    ;
+
+pointer
+    : '*'
+    ;
+
+direct_declorator
+    : IDENTIFIER
+    ;
+
 %%
 
 
 int yyerror(const char *s) {
-    fprintf(stderr, "Error: \n");
+    fprintf(stderr, "Error at line: %d %s\n",lineno,s);
+    fprintf(stderr, "Near token: '%s'\n", yytext);
     return 0;
 }
 
@@ -90,7 +105,6 @@ int main(int argc, char *argv[]){
         fclose(yyin);
         return 1;
     }
-
     yyparse();
     fclose(yyin);
     fclose(yyout);
