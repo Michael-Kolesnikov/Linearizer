@@ -6,6 +6,7 @@
     int yyerror(const char *s);
     extern char *yytext;
     extern int lineno;
+
 %}
 
 %token	IDENTIFIER I_CONST F_CONST FUNC_NAME SIZEOF
@@ -28,23 +29,24 @@
 %start program
 %%
 
-program
-    : declaration_expression
-    ;
-
-declaration_expression
-    : declaration declaration_expression
-    | declaration
-    ;
-
 declaration
     : decloration_specifiers ';'
-    | decloration_specifiers init_declorator ';'
+    | decloration_specifiers init_declarator_list ';'
     ;
 
 decloration_specifiers
     : type_specifiers decloration_specifiers
     | type_specifiers
+    ;
+
+init_declarator_list
+	: init_declarator
+	| init_declarator_list ',' init_declarator
+	;
+
+init_declarator
+    : declarator
+    | direct_declarator '(' ')'
     ;
 
 type_specifiers
@@ -63,23 +65,58 @@ type_specifiers
 	| TYPEDEF_NAME		
     ;
 
-init_declorator
-    : declorator
+declarator
+    : pointer direct_declarator
+    | direct_declarator
     ;
 
-declorator
-    : pointer direct_declorator
-    | direct_declorator
+direct_declarator
+    : IDENTIFIER
+    | direct_declarator '(' ')'
     ;
 
 pointer
     : '*'
     ;
 
-direct_declorator
-    : IDENTIFIER
+statement
+    : compound_statement
     ;
 
+compound_statement
+	: '{' '}'
+	| '{'  block_item_list '}'
+	;
+
+block_item_list
+	: block_item
+	| block_item_list block_item
+	;
+
+block_item
+	: declaration
+	| statement
+	;
+
+program
+	: external_declaration
+	| program external_declaration
+	;
+
+external_declaration
+	: function_definition
+	| declaration
+	;
+
+function_definition
+    : decloration_specifiers declarator declaration_list compound_statement
+    | decloration_specifiers declarator compound_statement
+    ;
+
+declaration_list
+	: declaration
+	| declaration_list declaration
+	;
 %%
 
 
