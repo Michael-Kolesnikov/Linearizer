@@ -156,6 +156,10 @@ expression
 	| expression ',' assignment_expression
 	;
 
+constant_expression
+	: conditional_expression
+	;
+
 declaration
     : decloration_specifiers ';'
     | decloration_specifiers init_declarator_list ';'
@@ -172,8 +176,8 @@ init_declarator_list
 	;
 
 init_declarator
-    : declarator
-    | direct_declarator '(' ')'
+    : declarator '=' initializer	
+	| declarator
     ;
 
 type_specifiers
@@ -199,15 +203,44 @@ declarator
 
 direct_declarator
     : IDENTIFIER
+	| '(' declarator ')'
     | direct_declarator '(' ')'
+	
     ;
 
 pointer
     : '*'
     ;
 
+initializer
+	: '{' initializer_list '}'
+	| '{' initializer_list ',' '}'
+	| assignment_expression
+	;
+
+initializer_list
+	: designation initializer
+	| initializer
+	| initializer_list ',' designation initializer
+	| initializer_list ',' initializer
+	;
+
+designation
+	: designator_list '='
+	;
+
+designator_list
+	: designator
+	| designator_list designator
+	;
+
+designator
+	: '[' constant_expression ']'
+	| '.' IDENTIFIER
+	;
 statement
     : compound_statement
+	| expression_statement
 	| jump_statement
     ;
 
@@ -224,6 +257,11 @@ block_item_list
 block_item
 	: declaration
 	| statement
+	;
+
+expression_statement
+	: ';'
+	| expression ';'
 	;
 
 jump_statement
