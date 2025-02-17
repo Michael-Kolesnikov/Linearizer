@@ -241,6 +241,7 @@ designator
 statement
     : compound_statement
 	| expression_statement
+	| iteration_statement
 	| jump_statement
     ;
 
@@ -263,6 +264,10 @@ expression_statement
 	: ';'
 	| expression ';'
 	;
+
+iteration_statement
+	: WHILE '(' expression ')' statement
+	| DO statement WHILE '(' expression ')' ';'
 
 jump_statement
 	: GOTO IDENTIFIER ';'
