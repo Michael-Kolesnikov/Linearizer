@@ -241,6 +241,7 @@ designator
 statement
     : compound_statement
 	| expression_statement
+	| selection_statement
 	| iteration_statement
 	| jump_statement
     ;
@@ -263,6 +264,12 @@ block_item
 expression_statement
 	: ';'
 	| expression ';'
+	;
+
+selection_statement
+	: IF '(' expression ')' statement ELSE statement
+	| IF '(' expression ')' statement
+	| SWITCH '(' expression ')' statement
 	;
 
 iteration_statement
