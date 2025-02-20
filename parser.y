@@ -161,12 +161,12 @@ constant_expression
 	;
 
 declaration
-    : decloration_specifiers ';'
-    | decloration_specifiers init_declarator_list ';'
+    : declaration_specifiers ';'
+    | declaration_specifiers init_declarator_list ';'
     ;
 
-decloration_specifiers
-    : type_specifiers decloration_specifiers
+declaration_specifiers
+    : type_specifiers declaration_specifiers
     | type_specifiers
     ;
 
@@ -224,9 +224,9 @@ parameter_list
 	;
 
 parameter_declaration
-	: decloration_specifiers declarator
-	| decloration_specifiers abstract_declarator
-	| decloration_specifiers
+	: declaration_specifiers declarator
+	| declaration_specifiers abstract_declarator
+	| declaration_specifiers
 	;
 
 abstract_declarator
@@ -330,8 +330,8 @@ external_declaration
 	;
 
 function_definition
-    : decloration_specifiers declarator declaration_list compound_statement
-    | decloration_specifiers declarator compound_statement
+    : declaration_specifiers declarator declaration_list compound_statement
+    | declaration_specifiers declarator compound_statement
     ;
 
 declaration_list
