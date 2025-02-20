@@ -204,13 +204,44 @@ declarator
 direct_declarator
     : IDENTIFIER
 	| '(' declarator ')'
-    | direct_declarator '(' ')'
-	
+    | direct_declarator '(' parameter_type_list ')'
+	| direct_declarator '(' ')'
+	 
     ;
 
 pointer
     : '*'
     ;
+
+parameter_type_list
+	: parameter_list ',' ELLIPSIS
+	| parameter_list
+	;
+
+parameter_list
+	: parameter_declaration
+	| parameter_list ',' parameter_declaration
+	;
+
+parameter_declaration
+	: decloration_specifiers declarator
+	| decloration_specifiers abstract_declarator
+	| decloration_specifiers
+	;
+
+abstract_declarator
+	: pointer direct_abstract_declarator
+	| pointer
+	| direct_abstract_declarator
+	;
+
+direct_abstract_declarator
+	: '(' abstract_declarator ')'
+	| '(' ')'
+	| '(' parameter_type_list ')'
+	| direct_abstract_declarator '(' ')'
+	| direct_abstract_declarator '(' parameter_type_list ')'
+	;
 
 initializer
 	: '{' initializer_list '}'
