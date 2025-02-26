@@ -193,8 +193,56 @@ type_specifiers
 	| BOOL
 	| COMPLEX
 	| IMAGINARY
+	| struct_or_union_specifier
 	| TYPEDEF_NAME		
     ;
+
+struct_or_union_specifier
+	: struct_or_union '{' struct_declaration_list '}'
+	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'
+	| struct_or_union IDENTIFIER
+	;
+
+struct_or_union
+	: STRUCT
+	| UNION
+	;
+
+struct_declaration_list
+	: struct_declaration
+	| struct_declaration_list struct_declaration
+	;
+
+struct_declaration
+	: specifier_qualifier_list ';'
+	| specifier_qualifier_list struct_declarator_list ';'
+	| static_assert_declaration
+	;
+
+specifier_qualifier_list
+	: type_specifiers specifier_qualifier_list
+	| type_specifiers
+	| type_qualifier specifier_qualifier_list
+	| type_qualifier
+	;
+
+struct_declarator_list
+	: struct_declarator
+	| struct_declarator_list ',' struct_declarator
+	;
+
+struct_declarator
+	: ':' constant_expression
+	| declarator ':' constant_expression
+	| declarator
+	;
+
+type_qualifier
+	: CONST
+	| RESTRICT
+	| VOLATILE
+	| ATOMIC
+	;
 
 declarator
     : pointer direct_declarator
@@ -269,6 +317,11 @@ designator
 	: '[' constant_expression ']'
 	| '.' IDENTIFIER
 	;
+
+static_assert_declaration
+	: STATIC_ASSERT '(' constant_expression ',' STRING ')' ';'
+	;
+
 statement
     : compound_statement
 	| expression_statement
