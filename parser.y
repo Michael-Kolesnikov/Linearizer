@@ -39,20 +39,23 @@
 %token <fval> F_CONST
 %token <ival> I_CONST
 %type <node> primary_expression direct_declarator declarator constant designator
+%type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
+%type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
+%type <node> expression initializer
 %%
 primary_expression
-	: IDENTIFIER {$$ = create_identifier_node($1);}
+	: IDENTIFIER { $$ = create_identifier_node($1); }
 	| constant
 	| '(' expression ')'
 	;
 
 constant
-	: I_CONST {$$ = create_constant_int_node($1);}
-	| F_CONST {$$ = create_constant_float_node($1);}
+	: I_CONST { $$ = create_constant_int_node($1); }
+	| F_CONST { $$ = create_constant_float_node($1); }
 	;
 
 postfix_expression
-	: primary_expression
+	: primary_expression { $$ = $1; }
 	| postfix_expression '[' expression ']'
 	| postfix_expression '(' ')'
 	| postfix_expression '.' IDENTIFIER
@@ -62,7 +65,7 @@ postfix_expression
 	;
 
 unary_expression
-	: postfix_expression
+	: postfix_expression { $$ = $1; }
 	| INCR_OP unary_expression
 	| DECR_OP unary_expression
 	| unary_operator cast_expression
@@ -78,30 +81,30 @@ unary_operator
 	;
 
 cast_expression
-	: unary_expression
+	: unary_expression { $$ = $1; }
 	;
 
 multiplicative_expression
-	: cast_expression
+	: cast_expression { $$ = $1; }
 	| multiplicative_expression '*' cast_expression
 	| multiplicative_expression '/' cast_expression
 	| multiplicative_expression '%' cast_expression
 	;
 
 additive_expression
-	: multiplicative_expression
-	| additive_expression '+' multiplicative_expression
+	: multiplicative_expression { $$ = $1; }
+	| additive_expression '+' multiplicative_expression { $$ = create_binary_operation_node('+',$1,$3); }
 	| additive_expression '-' multiplicative_expression
 	;
 
 shift_expression
-	: additive_expression
+	: additive_expression { $$ = $1; }
 	| shift_expression LEFT_OP additive_expression
 	| shift_expression RIGHT_OP additive_expression
 	;
 
 relational_expression
-	: shift_expression
+	: shift_expression { $$ = $1; }
 	| relational_expression '<' shift_expression
 	| relational_expression '>' shift_expression
 	| relational_expression LE_OP shift_expression
@@ -109,43 +112,43 @@ relational_expression
 	;
 
 equality_expression
-	: relational_expression
+	: relational_expression { $$ = $1; }
 	| equality_expression EQ_OP relational_expression
 	| equality_expression NE_OP relational_expression
 	;
 
 and_expression
-	: equality_expression
+	: equality_expression { $$ = $1; }
 	| and_expression '&' equality_expression
 	;
 
 exclusive_or_expression
-	: and_expression
+	: and_expression { $$ = $1; }
 	| exclusive_or_expression '^' and_expression
 	;
 
 inclusive_or_expression
-	: exclusive_or_expression
+	: exclusive_or_expression { $$ = $1; }
 	| inclusive_or_expression '|' exclusive_or_expression
 	;
 
 logical_and_expression
-	: inclusive_or_expression
+	: inclusive_or_expression { $$ = $1; }
 	| logical_and_expression AND_OP inclusive_or_expression
 	;
 
 logical_or_expression
-	: logical_and_expression
+	: logical_and_expression { $$ = $1; }
 	| logical_or_expression OR_OP logical_and_expression
 	;
 
 conditional_expression
-	: logical_or_expression
+	: logical_or_expression { $$ = $1; }
 	| logical_or_expression '?' expression ':' conditional_expression
 	;
 
 assignment_expression
-	: conditional_expression
+	: conditional_expression { $$ = $1; }
 	| unary_expression assignment_operator assignment_expression
 	;
 
@@ -164,7 +167,7 @@ assignment_operator
 	;
 
 expression
-	: assignment_expression
+	: assignment_expression { $$ = $1; }
 	| expression ',' assignment_expression
 	;
 
@@ -188,7 +191,7 @@ init_declarator_list
 	;
 
 init_declarator
-    : declarator '=' initializer	
+    : declarator '=' initializer
 	| declarator
     ;
 
@@ -262,7 +265,7 @@ declarator
     ;
 
 direct_declarator
-    : IDENTIFIER { $$ = create_identifier_node($1);}
+    : IDENTIFIER {$$ = create_identifier_node($1); }
 	| '(' declarator ')'
 	| direct_declarator '[' ']'
     | direct_declarator '(' parameter_type_list ')'
@@ -309,7 +312,7 @@ direct_abstract_declarator
 initializer
 	: '{' initializer_list '}'
 	| '{' initializer_list ',' '}'
-	| assignment_expression
+	| assignment_expression {$$ = $1;}
 	;
 
 initializer_list
@@ -416,6 +419,7 @@ int yyerror(const char *s) {
 }
 
 int main(int argc, char *argv[]){
+	
     if(argc != 3) {
         printf("Error: Invalid argument. Usage: <source_file.c> <output_file.c>\n");
         return 1;
@@ -435,5 +439,6 @@ int main(int argc, char *argv[]){
     yyparse();
     fclose(yyin);
     fclose(yyout);
+	root->print(root);
     return 0;
 }
