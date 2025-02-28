@@ -1,5 +1,7 @@
 %{
     #include <stdio.h>
+	#include "ast.h"
+	
     extern FILE *yyin;
     extern FILE *yyout;
     extern int yylex();
@@ -9,7 +11,7 @@
 	#define YYDEBUG 1
 %}
 
-%token	IDENTIFIER I_CONST F_CONST FUNC_NAME SIZEOF
+%token	FUNC_NAME SIZEOF
 %token	POINTER_OP INCR_OP DECR_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -27,16 +29,26 @@
 %token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
 %token COMMENT STRING CHARACTER PREPROCESSOR
 %start program
+%union{
+	Node* node;
+	char* str;
+	int ival;
+	double fval;
+}
+%token <str> IDENTIFIER
+%token <fval> F_CONST
+%token <ival> I_CONST
+%type <node> primary_expression direct_declarator declarator constant designator
 %%
 primary_expression
-	: IDENTIFIER
+	: IDENTIFIER {$$ = create_identifier_node($1);}
 	| constant
 	| '(' expression ')'
 	;
 
 constant
-	: I_CONST
-	| F_CONST
+	: I_CONST {$$ = create_constant_int_node($1);}
+	| F_CONST {$$ = create_constant_float_node($1);}
 	;
 
 postfix_expression
@@ -250,7 +262,7 @@ declarator
     ;
 
 direct_declarator
-    : IDENTIFIER
+    : IDENTIFIER { $$ = create_identifier_node($1);}
 	| '(' declarator ')'
     | direct_declarator '(' parameter_type_list ')'
 	| direct_declarator '(' ')'
@@ -315,7 +327,7 @@ designator_list
 
 designator
 	: '[' constant_expression ']'
-	| '.' IDENTIFIER
+	| '.' IDENTIFIER { $$ = create_identifier_node($2);}
 	;
 
 static_assert_declaration
@@ -420,6 +432,5 @@ int main(int argc, char *argv[]){
     yyparse();
     fclose(yyin);
     fclose(yyout);
-
     return 0;
 }

@@ -1,4 +1,5 @@
 %{
+#include "ast.h"
 #include "parser.tab.h"
 #include <stdio.h>
 #include <string.h>
@@ -54,9 +55,9 @@ int lineno = 1;
 "_Thread_local"         { return THREAD_LOCAL; }
 "__func__"              { return FUNC_NAME; }
 
-[a-zA-Z_][a-zA-Z0-9_]*    { return IDENTIFIER; }
-"0"|[0-9]+              { return I_CONST; }
-[0-9]+\.[0-9]+          { return F_CONST; }
+[a-zA-Z_][a-zA-Z0-9_]*    { yylval.str = strdup(yytext); return IDENTIFIER; }
+"0"|[0-9]+              { yylval.ival = atoi(yytext); return I_CONST; }
+[0-9]+\.[0-9]+          { yylval.fval = atof(yytext); return F_CONST; }
 
 "#"[a-zA-Z]+.*          { return PREPROCESSOR; }
 "//".*                  { return COMMENT; }
