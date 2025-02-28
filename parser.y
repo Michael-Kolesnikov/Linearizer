@@ -264,6 +264,7 @@ declarator
 direct_declarator
     : IDENTIFIER { $$ = create_identifier_node($1);}
 	| '(' declarator ')'
+	| direct_declarator '[' ']'
     | direct_declarator '(' parameter_type_list ')'
 	| direct_declarator '(' ')'
 	 
@@ -297,6 +298,8 @@ abstract_declarator
 
 direct_abstract_declarator
 	: '(' abstract_declarator ')'
+	| '[' ']'
+	| direct_abstract_declarator '[' ']'
 	| '(' ')'
 	| '(' parameter_type_list ')'
 	| direct_abstract_declarator '(' ')'
