@@ -9,6 +9,7 @@
     extern char *yytext;
     extern int lineno;
 	#define YYDEBUG 1
+	Node* root;
 %}
 
 %token	FUNC_NAME SIZEOF
@@ -46,7 +47,7 @@
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
 	| constant
-	| '(' expression ')'
+	| '(' expression ')' {$$ = $2;}
 	;
 
 constant
@@ -94,7 +95,7 @@ multiplicative_expression
 additive_expression
 	: multiplicative_expression { $$ = $1; }
 	| additive_expression '+' multiplicative_expression { $$ = create_binary_operation_node('+',$1,$3); }
-	| additive_expression '-' multiplicative_expression
+	| additive_expression '-' multiplicative_expression { $$ = create_binary_operation_node('-',$1,$3); }
 	;
 
 shift_expression
@@ -191,7 +192,7 @@ init_declarator_list
 	;
 
 init_declarator
-    : declarator '=' initializer
+    : declarator '=' initializer {root = $3;}
 	| declarator
     ;
 
