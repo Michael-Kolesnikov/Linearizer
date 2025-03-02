@@ -36,13 +36,14 @@
 	int ival;
 	double fval;
 }
-%token <str> IDENTIFIER
+%token <str> IDENTIFIER 
 %token <fval> F_CONST
 %token <ival> I_CONST
+%type <str> assignment_operator
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
-%type <node> expression initializer
+%type <node> expression initializer 
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -150,11 +151,11 @@ conditional_expression
 
 assignment_expression
 	: conditional_expression { $$ = $1; }
-	| unary_expression assignment_operator assignment_expression
+	| unary_expression assignment_operator assignment_expression { root = create_assignment_node($1,$2,$3);}
 	;
 
 assignment_operator
-	: '='
+	: '=' {$$ = "=";}
 	| MUL_ASSIGN
 	| DIV_ASSIGN
 	| MOD_ASSIGN
@@ -192,7 +193,7 @@ init_declarator_list
 	;
 
 init_declarator
-    : declarator '=' initializer {root = $3;}
+    : declarator '=' initializer { create_declaration_node($1, $3); }
 	| declarator
     ;
 
@@ -262,7 +263,7 @@ type_qualifier
 
 declarator
     : pointer direct_declarator
-    | direct_declarator
+    | direct_declarator {$$ = $1;}
     ;
 
 direct_declarator
@@ -440,6 +441,6 @@ int main(int argc, char *argv[]){
     yyparse();
     fclose(yyin);
     fclose(yyout);
-	root->print(root);
-    return 0;
+    root->print(root);
+	return 0;
 }

@@ -60,6 +60,37 @@ Node* create_binary_operation_node(int op, Node* left, Node* right) {
     return (Node*)node;
 }
 
+Node* create_declaration_node(Node* identifier, Node* initializer){
+    DeclarationNode* node = (DeclarationNode*)malloc(sizeof(DeclarationNode));
+    if (!node) {
+        fprintf(stderr, "Error: Failed to allocate memory for DeclarationNode\n");
+        exit(1);
+    }
+
+    node->base.type = DECLARATION_NODE;
+    node->base.print = print_declaration_node;
+    node->identifier = identifier;
+    node->initializer = initializer;
+
+    return (Node*)node;
+}
+
+Node* create_assignment_node(Node* left, char* op, Node* right){
+    AssignmentNode* node = (AssignmentNode*)malloc(sizeof(AssignmentNode));
+    if (!node) {
+        fprintf(stderr, "Error: Failed to allocate memory for AssignmentNode\n");
+        exit(1);
+    }
+
+    node->base.type = ASSIGNMENT_NODE;
+    node->base.print = print_assignment_node;
+    node->left = left;
+    node->op = op;
+    node->right = right;
+
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -110,4 +141,30 @@ void print_binary_operation_node(Node* node){
         printf("Right type: %s (%d)\n", node_type_to_string(bin_node->right->type), bin_node->right->type);
         bin_node->right->print(bin_node->right);
     }
+}
+
+void print_declaration_node(Node* node){
+    if (!node || node->type != DECLARATION_NODE) {
+        printf("Invalid BinOpNode\n");
+        return;
+    }
+    DeclarationNode* declaration_node = (DeclarationNode*)node;
+    printf("declarator identifier: ");
+    declaration_node->identifier->print(declaration_node->identifier);
+    printf("declarator initializer: ");
+    declaration_node->initializer->print(declaration_node->initializer);
+}
+
+void print_assignment_node(Node* node){
+    if (!node || node->type != ASSIGNMENT_NODE) {
+        printf("Invalid AssignmentNode\n");
+        return;
+    }
+    AssignmentNode* declaration_node = (AssignmentNode*)node;
+    printf("assignment left part: ");
+    declaration_node->left->print(declaration_node->left);
+    printf("operation: %s\n", declaration_node->op);
+    printf("assignment right part: ");
+    declaration_node->right->print(declaration_node->right);
+
 }
