@@ -99,17 +99,15 @@ void print_binary_operation_node(Node* node){
         return;
     }
     BinaryOperationNode* bin_node = (BinaryOperationNode*)node;
-    printf("Binary Operation: %c\n", bin_node->op);  // Выводим символ
-    printf("Left: ");
+    printf("Binary Operation: %c\n", bin_node->op);
     if(bin_node->left == NULL){
     }else{
         printf("Left type: %s (%d)\n", node_type_to_string(bin_node->left->type), bin_node->left->type);
         bin_node->left->print(bin_node->left);
     }
-    printf("Right: ");
     if(bin_node->right == NULL){
     }else{
-        printf("Right type: %s (%d)\n", node_type_to_string(bin_node->left->type), bin_node->left->type);
+        printf("Right type: %s (%d)\n", node_type_to_string(bin_node->right->type), bin_node->right->type);
         bin_node->right->print(bin_node->right);
     }
 }
