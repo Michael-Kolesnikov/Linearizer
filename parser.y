@@ -121,17 +121,17 @@ equality_expression
 
 and_expression
 	: equality_expression { $$ = $1; }
-	| and_expression '&' equality_expression 
+	| and_expression '&' equality_expression { $$ = create_binary_operation_node('&',$1,$3); }
 	;
 
 exclusive_or_expression
 	: and_expression { $$ = $1; }
-	| exclusive_or_expression '^' and_expression
+	| exclusive_or_expression '^' and_expression { $$ = create_binary_operation_node('^',$1,$3); }
 	;
 
 inclusive_or_expression
 	: exclusive_or_expression { $$ = $1; }
-	| inclusive_or_expression '|' exclusive_or_expression
+	| inclusive_or_expression '|' exclusive_or_expression { $$ = create_binary_operation_node('|',$1,$3); }
 	;
 
 logical_and_expression
@@ -345,7 +345,7 @@ static_assert_declaration
 statement
     : compound_statement
 	| expression_statement
-	| selection_statement {root = $1;}
+	| selection_statement { root = $1;}
 	| iteration_statement
 	| jump_statement
     ;
