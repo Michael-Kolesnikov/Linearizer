@@ -43,7 +43,7 @@
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
-%type <node> expression initializer selection_statement expression_statement
+%type <node> expression initializer selection_statement expression_statement statement
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -344,8 +344,8 @@ static_assert_declaration
 
 statement
     : compound_statement
-	| expression_statement
-	| selection_statement { root = $1;}
+	| expression_statement { $$ = $1; }
+	| selection_statement { $$ = $1; }
 	| iteration_statement
 	| jump_statement
     ;
@@ -362,12 +362,12 @@ block_item_list
 
 block_item
 	: declaration
-	| statement
+	| statement {root = $1;}
 	;
 
 expression_statement
-	: ';'
-	| expression ';' { $$ = $1; }
+	: ';' {$$ = create_expression_statement_node(create_empty_statement_node());}
+	| expression ';' { $$ = create_expression_statement_node($1); }
 	;
 
 selection_statement

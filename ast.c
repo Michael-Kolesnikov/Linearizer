@@ -124,6 +124,30 @@ Node* create_if_node(Node* condition, Node* then_statement, Node* else_statement
     node->else_statement = else_statement;
 }
 
+Node* create_expression_statement_node(Node* expr){
+    ExpressionStatementNode* node = (ExpressionStatementNode*)malloc(sizeof(ExpressionStatementNode));
+    if (!node) {
+        fprintf(stderr, "Error: Failed to allocate memory for ExpressionStatementNode\n");
+        exit(1);
+    }
+
+    node->base.type = EXPRESSION_STATEMENT_NODE;
+    node->base.print = print_expression_statement_node;
+    node->expr = expr;
+    return node;
+}
+
+Node* create_empty_statement_node(){
+    EmptyStatementNode* node = (EmptyStatementNode*)malloc(sizeof(EmptyStatementNode));
+    if(!node) {
+        fprintf(stderr, "Error: Failed to allocate memory for EmptyStatementNode\n");
+        exit(1);
+    }
+
+    node->base.type = EMPTY_STATEMENT_NODE;
+    node->base.print = print_empty_statement_node;
+    return node;
+}
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -223,4 +247,12 @@ void print_if_node(Node* node){
     IfNode* declaration_node = (IfNode*)node;
     printf("If node Condition: ");
     declaration_node->condition->print(declaration_node->condition);
+}
+
+void print_expression_statement_node(Node* node){
+
+}
+
+void print_empty_statement_node(Node* node){
+    
 }
