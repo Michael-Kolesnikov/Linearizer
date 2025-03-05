@@ -1,5 +1,6 @@
 %{
     #include <stdio.h>
+	#include <stdlib.h>
 	#include "ast.h"
 	
     extern FILE *yyin;
@@ -43,7 +44,7 @@
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
-%type <node> expression initializer selection_statement expression_statement statement
+%type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -343,7 +344,7 @@ static_assert_declaration
 	;
 
 statement
-    : compound_statement
+    : compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
 	| iteration_statement
@@ -351,28 +352,41 @@ statement
     ;
 
 compound_statement
-	: '{' '}'
-	| '{'  block_item_list '}'
+	: '{' '}' { }
+	| '{'  block_item_list '}'{ $$ = $2;}
 	;
 
 block_item_list
-	: block_item
-	| block_item_list block_item
+	: block_item {
+			Node** statements = (Node**)malloc(1 * sizeof(Node*));
+			statements[0] = $1;
+			$$ = create_compound_statement_node(statements,1);
+		}
+	| block_item_list block_item {
+		CompoundStatementNode* prev_node = (CompoundStatementNode*)$1;
+		Node** new_statements = (Node**)realloc(prev_node->statements, (prev_node->count + 1) * sizeof(Node*));
+		new_statements[prev_node->count] = $2;
+        
+        prev_node->statements = new_statements;
+        prev_node->count++;
+        
+        $$ = $1;
+      }
 	;
 
 block_item
 	: declaration
-	| statement {root = $1;}
+	| statement { $$ = $1; }
 	;
 
 expression_statement
-	: ';' {$$ = create_expression_statement_node(create_empty_statement_node());}
+	: ';' { $$ = create_expression_statement_node(create_empty_statement_node());}
 	| expression ';' { $$ = create_expression_statement_node($1); }
 	;
 
 selection_statement
-	: IF '(' expression ')' statement ELSE statement { $$ = create_if_node($3,NULL, NULL);}
-	| IF '(' expression ')' statement  { $$ = create_if_node($3,NULL,NULL);}
+	: IF '(' expression ')' statement ELSE statement { $$ = create_if_node($3,$5, $7);}
+	| IF '(' expression ')' statement  { $$ = create_if_node($3,$5,NULL);}
 	| SWITCH '(' expression ')' statement
 	;
 
@@ -403,8 +417,8 @@ external_declaration
 	;
 
 function_definition
-    : declaration_specifiers declarator declaration_list compound_statement
-    | declaration_specifiers declarator compound_statement
+    : declaration_specifiers declarator declaration_list compound_statement 
+    | declaration_specifiers declarator compound_statement {root = $3;}
     ;
 
 declaration_list
@@ -437,10 +451,14 @@ int main(int argc, char *argv[]){
         fclose(yyin);
         return 1;
     }
-	yydebug = 1;
+	yydebug = 0;
     yyparse();
     fclose(yyin);
     fclose(yyout);
-    root->print(root);
+	if(root == NULL){
+		printf("ROOT IS NULL\n");
+	}else{
+    	root->print(root);
+	}
 	return 0;
 }

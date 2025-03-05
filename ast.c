@@ -134,7 +134,7 @@ Node* create_expression_statement_node(Node* expr){
     node->base.type = EXPRESSION_STATEMENT_NODE;
     node->base.print = print_expression_statement_node;
     node->expr = expr;
-    return node;
+    return (Node*)node;
 }
 
 Node* create_empty_statement_node(){
@@ -146,8 +146,20 @@ Node* create_empty_statement_node(){
 
     node->base.type = EMPTY_STATEMENT_NODE;
     node->base.print = print_empty_statement_node;
-    return node;
+    return (Node*)node;
 }
+
+
+Node* create_compound_statement_node(Node** statement, int count){
+    CompoundStatementNode* node = (CompoundStatementNode*)malloc(sizeof(CompoundStatementNode));
+    
+    node->statements = statement;
+    node->count = count;
+    node->base.type = COMPOUND_STATEMENT_NODE;
+    node->base.print= print_compound_statement_node;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -244,15 +256,37 @@ void print_if_node(Node* node){
         printf("Invalid LogicalNode\n");
         return;
     }
-    IfNode* declaration_node = (IfNode*)node;
+    IfNode* if_node = (IfNode*)node;
     printf("If node Condition: ");
-    declaration_node->condition->print(declaration_node->condition);
+    if_node->condition->print(if_node->condition);
+    printf("IF statement: ");
+    if_node->then_statement->print(if_node->then_statement);
+    if(if_node->else_statement != NULL){
+        printf("ELSE statement: ");
+        if_node->else_statement->print(if_node->else_statement);
+    }
+    
 }
 
 void print_expression_statement_node(Node* node){
-
+    if (!node || node->type != EXPRESSION_STATEMENT_NODE) {
+        printf("Invalid ExpressionStatementNode\n");
+        return;
+    }
+    ExpressionStatementNode* expression_statement_node = (ExpressionStatementNode*)node;
+    printf("Expression statement: ");
+    expression_statement_node->expr->print(expression_statement_node->expr);
 }
 
 void print_empty_statement_node(Node* node){
-    
+    printf("\t");
+}
+void print_compound_statement_node(Node* node){
+    CompoundStatementNode* compound_node = (CompoundStatementNode*)node;
+    printf("compound Node: ");
+    printf("%d\n",compound_node->count);
+    for(int i = 0; i < compound_node->count; i++){
+        printf("[%d]: ",i);
+        compound_node->statements[i]->print(compound_node->statements[i]);
+    }
 }
