@@ -4,6 +4,8 @@ typedef enum NodeType {
     BINARY_OPERATION_NODE,
     DECLARATION_NODE,
     ASSIGNMENT_NODE,
+    LOGICAL_OPERATION_NODE,
+    IF_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -49,14 +51,32 @@ typedef struct {
     Node* right;
 } AssignmentNode;
 
+typedef struct {
+    Node base;
+    Node* left;
+    char* op;
+    Node* right;
+} LogicalOperationNode;
+
+typedef struct {
+    Node base;
+    Node* condition;
+    Node* then_statement;
+    Node* else_statement;
+} IfNode;
+
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
 Node *create_binary_operation_node(int op, Node* left, Node* right);
 Node *create_declaration_node(Node* identifier, Node* initializer);
 Node* create_assignment_node(Node* left, char* op, Node* right);
+Node* create_logical_operation_node(Node* left, char* op, Node* right);
+Node* create_if_node(Node* condition, Node* then_statement, Node* else_statement);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
 void print_declaration_node(Node* node);
 void print_assignment_node(Node* node);
+void print_logical_operation_node(Node* node);
+void print_if_node(Node* node);

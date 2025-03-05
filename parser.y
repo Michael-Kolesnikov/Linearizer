@@ -43,7 +43,7 @@
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
-%type <node> expression initializer 
+%type <node> expression initializer selection_statement expression_statement
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -107,21 +107,21 @@ shift_expression
 
 relational_expression
 	: shift_expression { $$ = $1; }
-	| relational_expression '<' shift_expression
-	| relational_expression '>' shift_expression
-	| relational_expression LE_OP shift_expression
-	| relational_expression GE_OP shift_expression
+	| relational_expression '<' shift_expression { $$ = create_logical_operation_node($1,"<", $3); }
+	| relational_expression '>' shift_expression { $$ = create_logical_operation_node($1,">", $3); }
+	| relational_expression LE_OP shift_expression { $$ = create_logical_operation_node($1,"<=", $3); }
+	| relational_expression GE_OP shift_expression { $$ = create_logical_operation_node($1,">=", $3); }
 	;
 
 equality_expression
 	: relational_expression { $$ = $1; }
-	| equality_expression EQ_OP relational_expression
-	| equality_expression NE_OP relational_expression
+	| equality_expression EQ_OP relational_expression { $$ = create_logical_operation_node($1,"==", $3); }
+	| equality_expression NE_OP relational_expression { $$ = create_logical_operation_node($1,"!=", $3); }
 	;
 
 and_expression
 	: equality_expression { $$ = $1; }
-	| and_expression '&' equality_expression
+	| and_expression '&' equality_expression 
 	;
 
 exclusive_or_expression
@@ -136,12 +136,12 @@ inclusive_or_expression
 
 logical_and_expression
 	: inclusive_or_expression { $$ = $1; }
-	| logical_and_expression AND_OP inclusive_or_expression
+	| logical_and_expression AND_OP inclusive_or_expression { $$ = create_logical_operation_node($1,"&&", $3); }
 	;
 
 logical_or_expression
 	: logical_and_expression { $$ = $1; }
-	| logical_or_expression OR_OP logical_and_expression
+	| logical_or_expression OR_OP logical_and_expression { $$ = create_logical_operation_node($1,"||", $3); }
 	;
 
 conditional_expression
@@ -151,7 +151,7 @@ conditional_expression
 
 assignment_expression
 	: conditional_expression { $$ = $1; }
-	| unary_expression assignment_operator assignment_expression { root = create_assignment_node($1,$2,$3);}
+	| unary_expression assignment_operator assignment_expression { $$ = create_assignment_node($1,$2,$3);}
 	;
 
 assignment_operator
@@ -345,7 +345,7 @@ static_assert_declaration
 statement
     : compound_statement
 	| expression_statement
-	| selection_statement
+	| selection_statement {root = $1;}
 	| iteration_statement
 	| jump_statement
     ;
@@ -367,12 +367,12 @@ block_item
 
 expression_statement
 	: ';'
-	| expression ';'
+	| expression ';' { $$ = $1; }
 	;
 
 selection_statement
-	: IF '(' expression ')' statement ELSE statement
-	| IF '(' expression ')' statement
+	: IF '(' expression ')' statement ELSE statement { $$ = create_if_node($3,NULL, NULL);}
+	| IF '(' expression ')' statement  { $$ = create_if_node($3,NULL,NULL);}
 	| SWITCH '(' expression ')' statement
 	;
 

@@ -91,6 +91,39 @@ Node* create_assignment_node(Node* left, char* op, Node* right){
     return (Node*)node;
 }
 
+Node* create_logical_operation_node(Node* left, char* op, Node* right){
+    LogicalOperationNode* node = (LogicalOperationNode*)malloc(sizeof(LogicalOperationNode));
+    if (!node) {
+        fprintf(stderr, "Error: Failed to allocate memory for LogicalOperationNode\n");
+        exit(1);
+    }
+    node->base.type = LOGICAL_OPERATION_NODE;
+    node->base.print = print_logical_operation_node;
+    node->left = left;
+    node->op = strdup(op);
+    if (!node->op) {
+        fprintf(stderr, "Error: Failed to duplicate operator string\n");
+        free(node);
+        exit(1);
+    }
+    node->right = right;
+    return (Node*)node;
+}
+
+Node* create_if_node(Node* condition, Node* then_statement, Node* else_statement){
+    IfNode* node = (IfNode*)malloc(sizeof(IfNode));
+    if (!node) {
+        fprintf(stderr, "Error: Failed to allocate memory for IfNode\n");
+        exit(1);
+    }
+    
+    node->base.type = IF_NODE;
+    node->base.print = print_if_node;
+    node->condition = condition;
+    node->then_statement = then_statement;
+    node->else_statement = else_statement;
+}
+
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -167,4 +200,27 @@ void print_assignment_node(Node* node){
     printf("assignment right part: ");
     declaration_node->right->print(declaration_node->right);
 
+}
+
+void print_logical_operation_node(Node* node){
+    if (!node || node->type != LOGICAL_OPERATION_NODE) {
+        printf("Invalid LogicalNode\n");
+        return;
+    }
+    LogicalOperationNode* declaration_node = (LogicalOperationNode*)node;
+    printf("Operation %s\n", declaration_node->op);
+    printf("Left: ");
+    declaration_node->left->print(declaration_node->left);
+    printf("Right: ");
+    declaration_node->right->print(declaration_node->right);
+}
+
+void print_if_node(Node* node){
+    if (!node || node->type != IF_NODE) {
+        printf("Invalid LogicalNode\n");
+        return;
+    }
+    IfNode* declaration_node = (IfNode*)node;
+    printf("If node Condition: ");
+    declaration_node->condition->print(declaration_node->condition);
 }
