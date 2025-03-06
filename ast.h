@@ -9,6 +9,7 @@ typedef enum NodeType {
     EXPRESSION_STATEMENT_NODE,
     EMPTY_STATEMENT_NODE,
     COMPOUND_STATEMENT_NODE,
+    FUNCTION_DECLARATION_NODE,
 
 } NodeType;
 
@@ -84,6 +85,13 @@ typedef struct {
     int count;
 } CompoundStatementNode;
 
+typedef struct {
+    Node base;
+    char* return_type;
+    Node* name;
+    Node* body;
+} FunctionDeclarationNode;
+
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -95,6 +103,7 @@ Node* create_if_node(Node* condition, Node* then_statement, Node* else_statement
 Node* create_expression_statement_node(Node* expr);
 Node* create_empty_statement_node();
 Node* create_compound_statement_node(Node** statement, int count);
+Node* create_function_declaration_node(char* return_type, Node* name, Node* body);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -105,3 +114,4 @@ void print_if_node(Node* node);
 void print_expression_statement_node(Node* node);
 void print_empty_statement_node(Node* node);
 void print_compound_statement_node(Node* node);
+void print_function_declaration_node(Node* node);

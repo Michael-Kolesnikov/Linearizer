@@ -22,7 +22,7 @@
 
 %token	TYPEDEF EXTERN STATIC AUTO REGISTER INLINE
 %token	CONST RESTRICT VOLATILE
-%token	BOOL CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE VOID
+%token	BOOL CHAR SHORT LONG SIGNED UNSIGNED FLOAT DOUBLE VOID
 %token	COMPLEX IMAGINARY 
 %token	STRUCT UNION ENUM ELLIPSIS
 
@@ -37,14 +37,15 @@
 	int ival;
 	double fval;
 }
-%token <str> IDENTIFIER 
+%token <str> IDENTIFIER INT
 %token <fval> F_CONST
 %token <ival> I_CONST
-%type <str> assignment_operator
+%type <str> assignment_operator declaration_specifiers
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
+%type <node> type_specifiers
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -185,7 +186,7 @@ declaration
 
 declaration_specifiers
     : type_specifiers declaration_specifiers
-    | type_specifiers
+    | type_specifiers {$$ = $1;}
     ;
 
 init_declarator_list
@@ -202,7 +203,7 @@ type_specifiers
 	: VOID
 	| CHAR
 	| SHORT
-	| INT
+	| INT {$$ = $1; }
 	| LONG
 	| FLOAT
 	| DOUBLE
@@ -418,7 +419,7 @@ external_declaration
 
 function_definition
     : declaration_specifiers declarator declaration_list compound_statement 
-    | declaration_specifiers declarator compound_statement {root = $3;}
+    | declaration_specifiers declarator compound_statement { root = create_function_declaration_node($1,$2,$3); }
     ;
 
 declaration_list
@@ -451,7 +452,7 @@ int main(int argc, char *argv[]){
         fclose(yyin);
         return 1;
     }
-	yydebug = 0;
+	yydebug = 1;
     yyparse();
     fclose(yyin);
     fclose(yyout);

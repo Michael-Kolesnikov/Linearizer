@@ -160,6 +160,15 @@ Node* create_compound_statement_node(Node** statement, int count){
     return (Node*)node;
 }
 
+Node* create_function_declaration_node(char* return_type, Node* name, Node* body){
+    FunctionDeclarationNode* node = (FunctionDeclarationNode*)malloc(sizeof(FunctionDeclarationNode));
+    node->base.type = FUNCTION_DECLARATION_NODE;
+    node->base.print = print_function_declaration_node;
+    node->name = name;
+    node->return_type = strdup(return_type);
+    node->body = body;
+}
+
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -289,4 +298,13 @@ void print_compound_statement_node(Node* node){
         printf("[%d]: ",i);
         compound_node->statements[i]->print(compound_node->statements[i]);
     }
+}
+
+void print_function_declaration_node(Node* node){
+    FunctionDeclarationNode* func_decl_node = (FunctionDeclarationNode*)node;
+    printf("function type: %s\n",func_decl_node->return_type);
+    printf("function name: ");
+    func_decl_node->name->print(func_decl_node->name);
+    printf("function body: \n");
+    func_decl_node->body->print(func_decl_node->body);
 }
