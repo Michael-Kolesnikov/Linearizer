@@ -3,8 +3,10 @@
 	#include <stdlib.h>
 	#include "ast.h"
 	
+
     extern FILE *yyin;
     extern FILE *yyout;
+	void generate_code_from_ast(Node* node, FILE* output);
     extern int yylex();
     int yyerror(const char *s);
     extern char *yytext;
@@ -45,7 +47,7 @@
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
-%type <node> type_specifiers
+%type <node> type_specifiers init_declarator init_declarator_list declaration
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -180,8 +182,8 @@ constant_expression
 	;
 
 declaration
-    : declaration_specifiers ';'
-    | declaration_specifiers init_declarator_list ';'
+    : declaration_specifiers ';' { $$ = $1; }
+    | declaration_specifiers init_declarator_list ';' {}
     ;
 
 declaration_specifiers
@@ -190,13 +192,13 @@ declaration_specifiers
     ;
 
 init_declarator_list
-	: init_declarator
+	: init_declarator { $$ = $1; }
 	| init_declarator_list ',' init_declarator
 	;
 
 init_declarator
-    : declarator '=' initializer { create_declaration_node($1, $3); }
-	| declarator
+    : declarator '=' initializer { root = create_declaration_node($1, $3); root->print(root);  }
+	| declarator 
     ;
 
 type_specifiers
@@ -272,8 +274,8 @@ direct_declarator
     : IDENTIFIER {$$ = create_identifier_node($1); }
 	| '(' declarator ')'
 	| direct_declarator '[' ']'
-    | direct_declarator '(' parameter_type_list ')'
-	| direct_declarator '(' ')'
+    | direct_declarator '(' parameter_type_list ')' {}
+	| direct_declarator '(' ')' { $$ = $1;}
 	 
     ;
 
@@ -452,14 +454,16 @@ int main(int argc, char *argv[]){
         fclose(yyin);
         return 1;
     }
-	yydebug = 1;
+	yydebug = 0;
     yyparse();
-    fclose(yyin);
-    fclose(yyout);
+
 	if(root == NULL){
 		printf("ROOT IS NULL\n");
 	}else{
-    	root->print(root);
+    	/* root->print(root); */
+		generate_code_from_ast(root, yyout);
 	}
+	fclose(yyin);
+    fclose(yyout);
 	return 0;
 }

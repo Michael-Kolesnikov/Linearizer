@@ -1,3 +1,5 @@
+#ifndef AST_H
+#define AST_H
 typedef enum NodeType {
     IDENTIFIER_NODE,
     CONSTANT_NODE,
@@ -115,3 +117,4 @@ void print_expression_statement_node(Node* node);
 void print_empty_statement_node(Node* node);
 void print_compound_statement_node(Node* node);
 void print_function_declaration_node(Node* node);
+#endif // AST_H
