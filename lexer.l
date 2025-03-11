@@ -12,44 +12,44 @@ int lineno = 1;
 "auto"					{ return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
-"char"					{ return(CHAR); }
+"char"					{ yylval.str = strdup(yytext); return(CHAR); }
 "const"					{ return(CONST); }
 "continue"				{ return(CONTINUE); }
 "default"				{ return(DEFAULT); }
 "do"					{ return(DO); }
-"double"				{ return(DOUBLE); }
+"double"				{ yylval.str = strdup(yytext); return(DOUBLE); }
 "else"					{ return(ELSE); }
 "enum"					{ return(ENUM); }
 "extern"				{ return(EXTERN); }
-"float"					{ return(FLOAT); }
+"float"					{ yylval.str = strdup(yytext); return(FLOAT); }
 "for"					{ return(FOR); }
 "goto"					{ return(GOTO); }
 "if"					{ return(IF); }
 "inline"				{ return(INLINE); }
-"int"					{ return(INT); }
-"long"					{ return(LONG); }
+"int"					{ yylval.str = strdup(yytext); return(INT); }
+"long"					{ yylval.str = strdup(yytext); return(LONG); }
 "register"				{ return(REGISTER); }
 "restrict"				{ return(RESTRICT); }
 "return"				{ return(RETURN); }
-"short"					{ return(SHORT); }
-"signed"				{ return(SIGNED); }
+"short"					{ yylval.str = strdup(yytext); return(SHORT); }
+"signed"				{ yylval.str = strdup(yytext); return(SIGNED); }
 "sizeof"				{ return(SIZEOF); }
 "static"				{ return(STATIC); }
 "struct"				{ return(STRUCT); }
 "switch"				{ return(SWITCH); }
-"typedef"				{ return(TYPEDEF); }
+"typedef"				{ yylval.str = strdup(yytext); return(TYPEDEF); }
 "union"					{ return(UNION); }
-"unsigned"				{ return(UNSIGNED); }
-"void"					{ return(VOID); }
+"unsigned"				{ yylval.str = strdup(yytext); return(UNSIGNED); }
+"void"					{ yylval.str = strdup(yytext); return(VOID); }
 "volatile"				{ return(VOLATILE); }
 "while"					{ return(WHILE); }
 "_Alignas"              { return ALIGNAS; }
 "_Alignof"              { return ALIGNOF; }
 "_Atomic"               { return ATOMIC; }
-"_Bool"                 { return BOOL; }
-"_Complex"              { return COMPLEX; }
+"_Bool"                 { yylval.str = strdup(yytext); return BOOL; }
+"_Complex"              { yylval.str = strdup(yytext); return COMPLEX; }
 "_Generic"              { return GENERIC; }
-"_Imaginary"            { return IMAGINARY; }
+"_Imaginary"            { yylval.str = strdup(yytext); return IMAGINARY; }
 "_Noreturn"             { return NORETURN; }
 "_Static_assert"        { return STATIC_ASSERT; }
 "_Thread_local"         { return THREAD_LOCAL; }

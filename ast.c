@@ -227,10 +227,16 @@ void print_declaration_node(Node* node){
         return;
     }
     DeclarationNode* declaration_node = (DeclarationNode*)node;
+    printf("declorator type: %s\n", declaration_node->type_specifier);
+
     printf("declarator identifier: ");
     declaration_node->identifier->print(declaration_node->identifier);
-    printf("declarator initializer: ");
-    declaration_node->initializer->print(declaration_node->initializer);
+    if(declaration_node->initializer == NULL){
+        printf("no initializer\n");
+    }else{
+        printf("declarator initializer: ");
+        declaration_node->initializer->print(declaration_node->initializer);
+    }
 }
 
 void print_assignment_node(Node* node){

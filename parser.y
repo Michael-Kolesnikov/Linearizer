@@ -42,12 +42,12 @@
 %token <str> IDENTIFIER INT
 %token <fval> F_CONST
 %token <ival> I_CONST
-%type <str> assignment_operator declaration_specifiers
+%type <str> assignment_operator declaration_specifiers type_specifiers
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
-%type <node> type_specifiers init_declarator init_declarator_list declaration
+%type <node> init_declarator init_declarator_list declaration
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -182,8 +182,12 @@ constant_expression
 	;
 
 declaration
-    : declaration_specifiers ';' { $$ = $1; }
-    | declaration_specifiers init_declarator_list ';' {}
+    : declaration_specifiers ';' { $$ = $1;  }
+    | declaration_specifiers init_declarator_list ';' {
+		DeclarationNode* decl_node = (DeclarationNode*)$2;
+		decl_node->type_specifier = strdup($1);
+		$$ = $2;
+		}
     ;
 
 declaration_specifiers
@@ -197,25 +201,25 @@ init_declarator_list
 	;
 
 init_declarator
-    : declarator '=' initializer { root = create_declaration_node($1, $3); root->print(root);  }
-	| declarator 
+    : declarator '=' initializer { $$ = create_declaration_node($1, $3);}
+	| declarator  { $$ = create_declaration_node($1, NULL);}
     ;
 
 type_specifiers
-	: VOID
-	| CHAR
-	| SHORT
-	| INT {$$ = $1; }
-	| LONG
-	| FLOAT
-	| DOUBLE
-	| SIGNED
-	| UNSIGNED
-	| BOOL
-	| COMPLEX
-	| IMAGINARY
+	: VOID { $$ = $1; }
+	| CHAR { $$ = $1; }
+	| SHORT { $$ = $1; }
+	| INT { $$ = $1; }
+	| LONG { $$ = $1; }
+	| FLOAT { $$ = $1; }
+	| DOUBLE { $$ = $1; }
+	| SIGNED { $$ = $1; }
+	| UNSIGNED { $$ = $1; }
+	| BOOL { $$ = $1; }
+	| COMPLEX { $$ = $1; }
+	| IMAGINARY { $$ = $1;}
 	| struct_or_union_specifier
-	| TYPEDEF_NAME		
+	| TYPEDEF_NAME { $$ = $1;}	
     ;
 
 struct_or_union_specifier
@@ -378,7 +382,7 @@ block_item_list
 	;
 
 block_item
-	: declaration
+	: declaration { $$ = $1;}
 	| statement { $$ = $1; }
 	;
 
@@ -460,8 +464,8 @@ int main(int argc, char *argv[]){
 	if(root == NULL){
 		printf("ROOT IS NULL\n");
 	}else{
-    	/* root->print(root); */
-		generate_code_from_ast(root, yyout);
+    	root->print(root);
+		generate_code_from_ast(root,yyout);
 	}
 	fclose(yyin);
     fclose(yyout);
