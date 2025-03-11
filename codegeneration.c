@@ -38,8 +38,10 @@ void generate_code_from_ast(Node* node, FILE* output) {
             DeclarationNode* decl_node = (DeclarationNode*)node;
             fprintf(output, "%s ",decl_node->type_specifier);
             generate_code_from_ast(decl_node->identifier, output);
-            fprintf(output, " = ");
-            generate_code_from_ast(decl_node->initializer, output);
+            if(decl_node->initializer != NULL){
+                fprintf(output, " = ");
+                generate_code_from_ast(decl_node->initializer, output);
+            }
             fprintf(output, ";\n");
             break;
         }
