@@ -90,9 +90,9 @@ cast_expression
 
 multiplicative_expression
 	: cast_expression { $$ = $1; }
-	| multiplicative_expression '*' cast_expression
-	| multiplicative_expression '/' cast_expression
-	| multiplicative_expression '%' cast_expression
+	| multiplicative_expression '*' cast_expression { $$ = create_binary_operation_node('*',$1,$3); }
+	| multiplicative_expression '/' cast_expression { $$ = create_binary_operation_node('/',$1,$3); }
+	| multiplicative_expression '%' cast_expression { $$ = create_binary_operation_node('%',$1,$3); }
 	;
 
 additive_expression
