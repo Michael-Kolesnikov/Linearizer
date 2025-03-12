@@ -63,7 +63,7 @@ int lineno = 1;
 "//".*                  { return COMMENT; }
 "/\\*".*?"\\*/"         { return COMMENT; }
 
-\"(\\.|[^"])*\"         { return STRING; }
+((u8|u|U|L)?\"([^"\\\n]|(\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+)))*\"[ \t\v\n\f]*)+         { yylval.str = strdup(yytext); return STRING; }
 \'(\\.|[^'])\'          { return CHARACTER; }
 
 "..."					{ return ELLIPSIS; }

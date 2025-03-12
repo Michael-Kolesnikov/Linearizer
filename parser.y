@@ -29,7 +29,7 @@
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
-%token COMMENT STRING CHARACTER PREPROCESSOR
+%token COMMENT CHARACTER PREPROCESSOR
 %start program
 %union{
 	Node* node;
@@ -37,7 +37,7 @@
 	int ival;
 	double fval;
 }
-%token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME
+%token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME STRING
 %token <fval> F_CONST
 %token <ival> I_CONST
 %type <str> assignment_operator declaration_specifiers type_specifiers
@@ -46,16 +46,23 @@
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
+%type <node> string
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
-	| constant
+	| constant { $$ = $1; }
+	| string { $$ = $1; }
 	| '(' expression ')' {$$ = $2;}
 	;
 
 constant
 	: I_CONST { $$ = create_constant_int_node($1); }
 	| F_CONST { $$ = create_constant_float_node($1); }
+	;
+
+string
+	: STRING { $$ = create_string_literal_node($1); }
+	| FUNC_NAME
 	;
 
 postfix_expression
@@ -463,7 +470,7 @@ int main(int argc, char *argv[]){
 		printf("ROOT IS NULL\n");
 	}else{
     	root->print(root);
-		generate_code_from_ast(root,yyout);
+		/* generate_code_from_ast(root,yyout); */
 	}
 	fclose(yyin);
     fclose(yyout);

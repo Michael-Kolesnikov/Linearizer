@@ -169,6 +169,13 @@ Node* create_function_declaration_node(char* return_type, Node* name, Node* body
     node->body = body;
 }
 
+Node* create_string_literal_node(char* value){
+    StringNode* node = (StringNode*)malloc(sizeof(StringNode));
+    node->base.type = STRING_LITERAL_NODE;
+    node->base.print = print_string_literal_node;
+    node->value = strdup(value);
+}
+
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -313,4 +320,9 @@ void print_function_declaration_node(Node* node){
     func_decl_node->name->print(func_decl_node->name);
     printf("function body: \n");
     func_decl_node->body->print(func_decl_node->body);
+}
+void print_string_literal_node(Node* node){
+    StringNode* string = (StringNode*)node;
+
+    printf("string: %s",string->value);
 }
