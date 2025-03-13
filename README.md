@@ -8,11 +8,16 @@
 
 ## Установка
 
+### Требования
+Для сборки и работы требуется установить **Flex** и **Bison**.  
+На Ubuntu/Debian:  
 ```sh
+sudo apt install flex bison
 git clone https://github.com/Michael-Kolesnikov/Linearizer.git
 cd Linearizer
 make run
 ```
+
 Пример использования:
 Исходный код — input.c 
 ```C
