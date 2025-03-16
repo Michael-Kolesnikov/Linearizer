@@ -176,6 +176,13 @@ Node* create_string_literal_node(char* value){
     node->value = strdup(value);
 }
 
+Node* create_while_node(Node* condition, Node* body){
+    WhileNode* node = (WhileNode*)malloc(sizeof(WhileNode));
+    node->base.type = WHILE_NODE;
+    node->base.print = print_while_node;
+    node->condition = condition;
+    node->body = body;
+}
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -325,4 +332,11 @@ void print_string_literal_node(Node* node){
     StringNode* string = (StringNode*)node;
 
     printf("string: %s",string->value);
+}
+void print_while_node(Node* node){
+    WhileNode* while_node = (WhileNode*)node;
+    printf("WHile condition: ");
+    while_node->condition->print(while_node->condition);
+    printf("While body: ");
+    while_node->body->print(while_node->body);
 }

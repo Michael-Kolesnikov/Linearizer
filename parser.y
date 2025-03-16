@@ -46,7 +46,7 @@
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
-%type <node> string
+%type <node> string iteration_statement
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -359,7 +359,7 @@ statement
     : compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
-	| iteration_statement
+	| iteration_statement { $$ = $1; }
 	| jump_statement
     ;
 
@@ -403,7 +403,7 @@ selection_statement
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement
+	: WHILE '(' expression ')' statement { $$ = create_while_node($3,$5);}
 	| DO statement WHILE '(' expression ')' ';'
 	| FOR '(' expression_statement expression_statement ')' statement
 	| FOR '(' expression_statement expression_statement expression ')' statement

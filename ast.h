@@ -13,7 +13,7 @@ typedef enum NodeType {
     COMPOUND_STATEMENT_NODE,
     FUNCTION_DECLARATION_NODE,
     STRING_LITERAL_NODE,
-
+    WHILE_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -100,6 +100,11 @@ typedef struct {
     char* value;
 } StringNode;
 
+typedef struct {
+    Node base;
+    Node* condition;
+    Node* body;
+} WhileNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -113,6 +118,7 @@ Node* create_empty_statement_node();
 Node* create_compound_statement_node(Node** statement, int count);
 Node* create_function_declaration_node(char* return_type, Node* name, Node* body);
 Node* create_string_literal_node(char* value);
+Node* create_while_node(Node* condition, Node* body);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -125,4 +131,5 @@ void print_empty_statement_node(Node* node);
 void print_compound_statement_node(Node* node);
 void print_function_declaration_node(Node* node);
 void print_string_literal_node(Node* node);
+void print_while_node(Node* node);
 #endif // AST_H
