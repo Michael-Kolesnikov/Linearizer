@@ -183,6 +183,13 @@ Node* create_while_node(Node* condition, Node* body){
     node->condition = condition;
     node->body = body;
 }
+Node* create_do_while_node(Node* do_statement, Node* condition){
+    DoWhileNode* node = (DoWhileNode*)malloc(sizeof(WhileNode));
+    node->base.type = DOWHILE_NODE;
+    node->base.print = print_do_while_node;
+    node->do_statement = do_statement;
+    node->condition = condition;
+}
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -339,4 +346,12 @@ void print_while_node(Node* node){
     while_node->condition->print(while_node->condition);
     printf("While body: ");
     while_node->body->print(while_node->body);
+}
+void print_do_while_node(Node* node){
+    DoWhileNode* while_node = (DoWhileNode*)node;
+    printf("doWhile body: ");
+    while_node->do_statement->print(while_node->do_statement);
+
+    printf("DoWHile condition: ");
+    while_node->condition->print(while_node->condition);
 }

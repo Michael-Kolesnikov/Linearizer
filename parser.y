@@ -404,7 +404,7 @@ selection_statement
 
 iteration_statement
 	: WHILE '(' expression ')' statement { $$ = create_while_node($3,$5);}
-	| DO statement WHILE '(' expression ')' ';'
+	| DO statement WHILE '(' expression ')' ';' { $$ = create_do_while_node($2,$5); }
 	| FOR '(' expression_statement expression_statement ')' statement
 	| FOR '(' expression_statement expression_statement expression ')' statement
 	| FOR '(' declaration expression_statement ')' statement
