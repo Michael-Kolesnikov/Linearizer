@@ -190,6 +190,35 @@ Node* create_do_while_node(Node* do_statement, Node* condition){
     node->do_statement = do_statement;
     node->condition = condition;
 }
+Node* create_switch_node(Node* expression, Node* body){
+    SwitchNode* node = (SwitchNode*)malloc(sizeof(SwitchNode));
+    node->base.type = SWITCH_NODE;
+    node->base.print = print_switch_node;
+    node->expression = expression;
+    node->body = body;
+}
+Node* create_case_node(Node* expression, Node* body){
+    CaseNode* node = (CaseNode*)malloc(sizeof(CaseNode));
+    node->base.type = CASE_NODE;
+    node->base.print = print_case_node;
+    node->expression = expression;
+    node->body = body;
+}
+
+Node* create_default_node(Node* body){
+    DefaultNode* node = (DefaultNode*)malloc(sizeof(DefaultNode));
+    node->base.type = DEFAULT_NODE;
+    node->base.print = print_default_node;
+    node->body = body;
+    return (Node*)node;
+}
+
+Node* create_break_node(){
+    BreakNode* node = (BreakNode*)malloc(sizeof(BreakNode));
+    node->base.type = BREAK_NODE;
+    node->base.print = print_break_node;
+    return (Node*)node;
+}
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -354,4 +383,29 @@ void print_do_while_node(Node* node){
 
     printf("DoWHile condition: ");
     while_node->condition->print(while_node->condition);
+}
+
+void print_switch_node(Node* node){
+    SwitchNode* switch_node = (SwitchNode*)node;
+    printf("SWITCH EXPRESSION: ");
+    switch_node->expression->print(switch_node->expression);
+    printf("switch body: ");
+    switch_node->body->print(switch_node->body);
+}
+
+void print_case_node(Node* node){
+    CaseNode* case_node = (CaseNode*)node;
+    printf("CASE EXPRESSION: ");
+    case_node->expression->print(case_node->expression);
+    printf("case body: ");
+    case_node->body->print(case_node->body);
+}
+void print_default_node(Node* node){
+    DefaultNode* def_node = (DefaultNode*)node;
+    printf("DEFAULT: ");
+    def_node->body->print(def_node->body);
+}
+
+void print_break_node(Node* node){
+    printf("break");
 }

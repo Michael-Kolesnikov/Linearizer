@@ -46,7 +46,7 @@
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
-%type <node> string iteration_statement
+%type <node> string iteration_statement labeled_statement constant_expression jump_statement
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -183,7 +183,7 @@ expression
 	;
 
 constant_expression
-	: conditional_expression
+	: conditional_expression {$$ = $1; }
 	;
 
 declaration
@@ -356,18 +356,18 @@ static_assert_declaration
 	;
 
 statement
-    : labeled_statement
+    : labeled_statement { $$ = $1; }
 	| compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
 	| iteration_statement { $$ = $1; }
-	| jump_statement
+	| jump_statement { $$ = $1; }
     ;
 
 labeled_statement
 	: IDENTIFIER ':' statement
-	| CASE constant_expression ':' statement
-	| DEFAULT ':' statement
+	| CASE constant_expression ':' statement { $$ = create_case_node($2, $4); }
+	| DEFAULT ':' statement { $$ = create_default_node($3); }
 	;
 
 compound_statement
@@ -406,7 +406,7 @@ expression_statement
 selection_statement
 	: IF '(' expression ')' statement ELSE statement { $$ = create_if_node($3,$5, $7);}
 	| IF '(' expression ')' statement  { $$ = create_if_node($3,$5,NULL);}
-	| SWITCH '(' expression ')' statement
+	| SWITCH '(' expression ')' statement { $$ = create_switch_node($3, $5); }
 	;
 
 iteration_statement
@@ -420,7 +420,7 @@ iteration_statement
 jump_statement
 	: GOTO IDENTIFIER ';'
 	| CONTINUE ';'
-	| BREAK ';'
+	| BREAK ';' { $$ = create_break_node(); }
 	| RETURN ';'
 	| RETURN expression ';'
 	;

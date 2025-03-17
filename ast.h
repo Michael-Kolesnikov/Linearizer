@@ -15,6 +15,10 @@ typedef enum NodeType {
     STRING_LITERAL_NODE,
     WHILE_NODE,
     DOWHILE_NODE,
+    SWITCH_NODE,
+    CASE_NODE,
+    DEFAULT_NODE,
+    BREAK_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -113,6 +117,26 @@ typedef struct {
     Node* condition;
 } DoWhileNode;
 
+typedef struct {
+    Node base;
+    Node* expression;
+    Node* body;
+} SwitchNode;
+
+typedef struct {
+    Node base;
+    Node* expression;
+    Node* body;
+} CaseNode;
+
+typedef struct {
+    Node base;
+    Node* body;
+} DefaultNode;
+
+typedef struct {
+    Node base;
+} BreakNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -128,6 +152,10 @@ Node* create_function_declaration_node(char* return_type, Node* name, Node* body
 Node* create_string_literal_node(char* value);
 Node* create_while_node(Node* condition, Node* body);
 Node* create_do_while_node(Node* do_statement, Node* condition);
+Node* create_switch_node(Node* expression, Node* body);
+Node* create_case_node(Node* expression, Node* body);
+Node* create_default_node(Node* body);
+Node* create_break_node();
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -142,4 +170,8 @@ void print_function_declaration_node(Node* node);
 void print_string_literal_node(Node* node);
 void print_while_node(Node* node);
 void print_do_while_node(Node* node);
+void print_switch_node(Node* node);
+void print_case_node(Node* node);
+void print_default_node(Node* node);
+void print_break_node(Node* node);
 #endif // AST_H
