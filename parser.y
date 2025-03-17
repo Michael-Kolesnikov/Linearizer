@@ -356,12 +356,19 @@ static_assert_declaration
 	;
 
 statement
-    : compound_statement { $$ = $1; }
+    : labeled_statement
+	| compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
 	| iteration_statement { $$ = $1; }
 	| jump_statement
     ;
+
+labeled_statement
+	: IDENTIFIER ':' statement
+	| CASE constant_expression ':' statement
+	| DEFAULT ':' statement
+	;
 
 compound_statement
 	: '{' '}' { }
