@@ -356,7 +356,7 @@ void print_expression_statement_node(Node* node){
 }
 
 void print_empty_statement_node(Node* node){
-    printf("\t");
+    printf("empty \t");
 }
 void print_compound_statement_node(Node* node){
     CompoundStatementNode* compound_node = (CompoundStatementNode*)node;

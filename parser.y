@@ -371,7 +371,7 @@ labeled_statement
 	;
 
 compound_statement
-	: '{' '}' { }
+	: '{' '}' { $$ = create_empty_statement_node(); }
 	| '{'  block_item_list '}'{ $$ = $2;}
 	;
 
