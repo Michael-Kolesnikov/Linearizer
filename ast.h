@@ -48,7 +48,7 @@ typedef struct BinaryOperationNode{
     Node base;
     Node* left;
     Node* right;
-    int op;
+    char* op;
 } BinaryOperationNode;
 
 typedef struct {
@@ -148,7 +148,7 @@ typedef struct {
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
-Node *create_binary_operation_node(int op, Node* left, Node* right);
+Node *create_binary_operation_node(char* op, Node* left, Node* right);
 Node *create_declaration_node(Node* identifier, Node* initializer);
 Node* create_assignment_node(Node* left, char* op, Node* right);
 Node* create_logical_operation_node(Node* left, char* op, Node* right);

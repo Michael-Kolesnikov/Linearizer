@@ -97,21 +97,21 @@ cast_expression
 
 multiplicative_expression
 	: cast_expression { $$ = $1; }
-	| multiplicative_expression '*' cast_expression { $$ = create_binary_operation_node('*',$1,$3); }
-	| multiplicative_expression '/' cast_expression { $$ = create_binary_operation_node('/',$1,$3); }
-	| multiplicative_expression '%' cast_expression { $$ = create_binary_operation_node('%',$1,$3); }
+	| multiplicative_expression '*' cast_expression { $$ = create_binary_operation_node("*",$1,$3); }
+	| multiplicative_expression '/' cast_expression { $$ = create_binary_operation_node("/",$1,$3); }
+	| multiplicative_expression '%' cast_expression { $$ = create_binary_operation_node("%",$1,$3); }
 	;
 
 additive_expression
 	: multiplicative_expression { $$ = $1; }
-	| additive_expression '+' multiplicative_expression { $$ = create_binary_operation_node('+',$1,$3); }
-	| additive_expression '-' multiplicative_expression { $$ = create_binary_operation_node('-',$1,$3); }
+	| additive_expression '+' multiplicative_expression { $$ = create_binary_operation_node("+",$1,$3); }
+	| additive_expression '-' multiplicative_expression { $$ = create_binary_operation_node("-",$1,$3); }
 	;
 
 shift_expression
 	: additive_expression { $$ = $1; }
-	| shift_expression LEFT_OP additive_expression
-	| shift_expression RIGHT_OP additive_expression
+	| shift_expression LEFT_OP additive_expression { $$ = create_binary_operation_node("<<",$1,$3); }
+	| shift_expression RIGHT_OP additive_expression { $$ = create_binary_operation_node(">>",$1,$3); }
 	;
 
 relational_expression
@@ -130,17 +130,17 @@ equality_expression
 
 and_expression
 	: equality_expression { $$ = $1; }
-	| and_expression '&' equality_expression { $$ = create_binary_operation_node('&',$1,$3); }
+	| and_expression '&' equality_expression { $$ = create_binary_operation_node("&",$1,$3); }
 	;
 
 exclusive_or_expression
 	: and_expression { $$ = $1; }
-	| exclusive_or_expression '^' and_expression { $$ = create_binary_operation_node('^',$1,$3); }
+	| exclusive_or_expression '^' and_expression { $$ = create_binary_operation_node("^",$1,$3); }
 	;
 
 inclusive_or_expression
 	: exclusive_or_expression { $$ = $1; }
-	| inclusive_or_expression '|' exclusive_or_expression { $$ = create_binary_operation_node('|',$1,$3); }
+	| inclusive_or_expression '|' exclusive_or_expression { $$ = create_binary_operation_node("|",$1,$3); }
 	;
 
 logical_and_expression
