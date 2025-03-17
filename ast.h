@@ -20,6 +20,7 @@ typedef enum NodeType {
     DEFAULT_NODE,
     BREAK_NODE,
     TERNARY_OPERATOR_NODE,
+    RETURN_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -145,6 +146,11 @@ typedef struct {
     Node* then_statement;
     Node* else_statement;
 } TernaryOperatorNode;
+
+typedef struct {
+    Node base;
+    Node* expression;
+} ReturnNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -165,6 +171,7 @@ Node* create_case_node(Node* expression, Node* body);
 Node* create_default_node(Node* body);
 Node* create_break_node();
 Node* create_ternary_operator_node(Node* condition, Node* then_statement, Node* else_statement);
+Node* create_return_node(Node* expression);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -184,4 +191,5 @@ void print_case_node(Node* node);
 void print_default_node(Node* node);
 void print_break_node(Node* node);
 void print_ternary_operator_node(Node* node);
+void print_return_node(Node* node);
 #endif // AST_H

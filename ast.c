@@ -231,6 +231,13 @@ Node* create_ternary_operator_node(Node* condition, Node* then_statement, Node* 
     node->else_statement = else_statement;
 }
 
+Node* create_return_node(Node* expression){
+    ReturnNode* node = (ReturnNode*)malloc(sizeof(ReturnNode));
+    node->base.type = RETURN_NODE;
+    node->base.print = print_return_node;
+    node->expression = expression;
+}
+
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -431,5 +438,13 @@ void print_ternary_operator_node(Node* node){
     if(ternary_node->else_statement != NULL){
         printf("ternary ELSE statement: ");
         ternary_node->else_statement->print(ternary_node->else_statement);
+    }
+}
+
+void print_return_node(Node* node){
+    ReturnNode* return_node = (ReturnNode*)node;
+    printf("return: ");
+    if(return_node->expression != NULL){
+        return_node->expression->print(return_node->expression);
     }
 }

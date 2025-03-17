@@ -421,8 +421,8 @@ jump_statement
 	: GOTO IDENTIFIER ';'
 	| CONTINUE ';'
 	| BREAK ';' { $$ = create_break_node(); }
-	| RETURN ';'
-	| RETURN expression ';'
+	| RETURN ';' { $$ = create_return_node(NULL); }
+	| RETURN expression ';' { $$ = create_return_node($2); }
 	;
 
 program
