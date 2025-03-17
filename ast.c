@@ -149,7 +149,6 @@ Node* create_empty_statement_node(){
     return (Node*)node;
 }
 
-
 Node* create_compound_statement_node(Node** statement, int count){
     CompoundStatementNode* node = (CompoundStatementNode*)malloc(sizeof(CompoundStatementNode));
     
@@ -183,6 +182,7 @@ Node* create_while_node(Node* condition, Node* body){
     node->condition = condition;
     node->body = body;
 }
+
 Node* create_do_while_node(Node* do_statement, Node* condition){
     DoWhileNode* node = (DoWhileNode*)malloc(sizeof(WhileNode));
     node->base.type = DOWHILE_NODE;
@@ -190,6 +190,7 @@ Node* create_do_while_node(Node* do_statement, Node* condition){
     node->do_statement = do_statement;
     node->condition = condition;
 }
+
 Node* create_switch_node(Node* expression, Node* body){
     SwitchNode* node = (SwitchNode*)malloc(sizeof(SwitchNode));
     node->base.type = SWITCH_NODE;
@@ -197,6 +198,7 @@ Node* create_switch_node(Node* expression, Node* body){
     node->expression = expression;
     node->body = body;
 }
+
 Node* create_case_node(Node* expression, Node* body){
     CaseNode* node = (CaseNode*)malloc(sizeof(CaseNode));
     node->base.type = CASE_NODE;
@@ -219,6 +221,16 @@ Node* create_break_node(){
     node->base.print = print_break_node;
     return (Node*)node;
 }
+
+Node* create_ternary_operator_node(Node* condition, Node* then_statement, Node* else_statement){
+    TernaryOperatorNode* node = (TernaryOperatorNode*)malloc(sizeof(TernaryOperatorNode));
+    node->base.type = TERNARY_OPERATOR_NODE;
+    node->base.print = print_ternary_operator_node;
+    node->condition = condition;
+    node->then_statement = then_statement;
+    node->else_statement = else_statement;
+}
+
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -408,4 +420,16 @@ void print_default_node(Node* node){
 
 void print_break_node(Node* node){
     printf("break");
+}
+
+void print_ternary_operator_node(Node* node){
+    TernaryOperatorNode* ternary_node = (TernaryOperatorNode*)node;
+    printf("ternary Condition: ");
+    ternary_node->condition->print(ternary_node->condition);
+    printf("ternary then statement: ");
+    ternary_node->then_statement->print(ternary_node->then_statement);
+    if(ternary_node->else_statement != NULL){
+        printf("ternary ELSE statement: ");
+        ternary_node->else_statement->print(ternary_node->else_statement);
+    }
 }

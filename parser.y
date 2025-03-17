@@ -155,7 +155,7 @@ logical_or_expression
 
 conditional_expression
 	: logical_or_expression { $$ = $1; }
-	| logical_or_expression '?' expression ':' conditional_expression
+	| logical_or_expression '?' expression ':' conditional_expression { $$ = create_ternary_operator_node($1, $3, $5); }
 	;
 
 assignment_expression
