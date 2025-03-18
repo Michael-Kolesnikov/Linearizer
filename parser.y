@@ -60,6 +60,10 @@ constant
 	| F_CONST { $$ = create_constant_float_node($1); }
 	;
 
+enumeration_constant
+	: IDENTIFIER
+	;
+
 string
 	: STRING { $$ = create_string_literal_node($1); }
 	| FUNC_NAME
@@ -210,6 +214,15 @@ init_declarator
 	| declarator  { $$ = create_declaration_node($1, NULL);}
     ;
 
+storage_class_specifier
+	: TYPEDEF
+	| EXTERN
+	| STATIC
+	| THREAD_LOCAL
+	| AUTO
+	| REGISTER
+	;
+
 type_specifiers
 	: VOID { $$ = $1; }
 	| CHAR { $$ = $1; }
@@ -267,6 +280,24 @@ struct_declarator
 	| declarator
 	;
 
+enum_specifier
+	: ENUM '{' enumerator_list '}'
+	| ENUM '{' enumerator_list ',' '}'
+	| ENUM IDENTIFIER '{' enumerator_list '}'
+	| ENUM IDENTIFIER '{' enumerator_list ',' '}'
+	| ENUM IDENTIFIER
+	;
+
+enumerator_list
+	: enumerator
+	| enumerator_list ',' enumerator
+	;
+
+enumerator
+	: enumeration_constant '=' constant_expression
+	| enumeration_constant
+	;
+
 type_qualifier
 	: CONST
 	| RESTRICT
@@ -283,14 +314,26 @@ direct_declarator
     : IDENTIFIER {$$ = create_identifier_node($1); }
 	| '(' declarator ')'
 	| direct_declarator '[' ']'
-    | direct_declarator '(' parameter_type_list ')' {}
+	| direct_declarator '[' '*' ']'
+	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
+	| direct_declarator '[' STATIC assignment_expression ']'
+	| direct_declarator '[' type_qualifier_list '*' ']'
+	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
+	| direct_declarator '[' type_qualifier_list assignment_expression ']'
+	| direct_declarator '[' type_qualifier_list ']'
+	| direct_declarator '[' assignment_expression ']'
+    | direct_declarator '(' parameter_type_list ')'
 	| direct_declarator '(' ')' { $$ = $1;}
-	 
-    ;
-
+    | direct_declarator '(' identifier_list ')'
+	;
 pointer
     : '*'
     ;
+
+type_qualifier_list
+	: type_qualifier
+	| type_qualifier_list type_qualifier
+	;
 
 parameter_type_list
 	: parameter_list ',' ELLIPSIS
@@ -308,6 +351,16 @@ parameter_declaration
 	| declaration_specifiers
 	;
 
+identifier_list
+	: IDENTIFIER
+	| identifier_list ',' IDENTIFIER
+	;
+
+type_name
+	: specifier_qualifier_list abstract_declarator
+	| specifier_qualifier_list
+	;
+
 abstract_declarator
 	: pointer direct_abstract_declarator
 	| pointer
@@ -317,7 +370,21 @@ abstract_declarator
 direct_abstract_declarator
 	: '(' abstract_declarator ')'
 	| '[' ']'
+	| '[' '*' ']'
+	| '[' STATIC type_qualifier_list assignment_expression ']'
+	| '[' STATIC assignment_expression ']'
+	| '[' type_qualifier_list STATIC assignment_expression ']'
+	| '[' type_qualifier_list assignment_expression ']'
+	| '[' type_qualifier_list ']'
+	| '[' assignment_expression ']'
 	| direct_abstract_declarator '[' ']'
+	| direct_abstract_declarator '[' '*' ']'
+	| direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']'
+	| direct_abstract_declarator '[' STATIC assignment_expression ']'
+	| direct_abstract_declarator '[' type_qualifier_list assignment_expression ']'
+	| direct_abstract_declarator '[' type_qualifier_list STATIC assignment_expression ']'
+	| direct_abstract_declarator '[' type_qualifier_list ']'
+	| direct_abstract_declarator '[' assignment_expression ']'
 	| '(' ')'
 	| '(' parameter_type_list ')'
 	| direct_abstract_declarator '(' ')'
