@@ -40,13 +40,13 @@
 %token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME STRING
 %token <fval> F_CONST
 %token <ival> I_CONST
-%type <str> assignment_operator declaration_specifiers type_specifiers
+%type <str> assignment_operator declaration_specifiers type_specifiers unary_operator
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
-%type <node> string iteration_statement labeled_statement constant_expression jump_statement
+%type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -75,24 +75,24 @@ postfix_expression
 	| postfix_expression '(' ')'
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression POINTER_OP IDENTIFIER
-	| postfix_expression INCR_OP
-	| postfix_expression DECR_OP
+	| postfix_expression INCR_OP { $$ = create_postfix_increment_node($1); }
+	| postfix_expression DECR_OP { $$ = create_postfix_decrement_node($1); }
 	;
 
 unary_expression
 	: postfix_expression { $$ = $1; }
-	| INCR_OP unary_expression
-	| DECR_OP unary_expression
+	| INCR_OP unary_expression { $$ = create_prefix_increment_node($2); }
+	| DECR_OP unary_expression { $$ = create_prefix_decrement_node($2); }
 	| unary_operator cast_expression
 	;
 
 unary_operator
-	: '&'
-	| '*'
-	| '+'
-	| '-'
-	| '~'
-	| '!'
+	: '&' { $$ = "&"; }
+	| '*' { $$ = "*"; }
+	| '+' { $$ = "+"; }
+	| '-' { $$ = "-"; }
+	| '~' { $$ = "~"; }
+	| '!' { $$ = "!"; }
 	;
 
 cast_expression
@@ -485,26 +485,26 @@ iteration_statement
 	| FOR '(' declaration expression_statement expression ')' statement
 
 jump_statement
-	: GOTO IDENTIFIER ';'
-	| CONTINUE ';'
+	: GOTO IDENTIFIER ';' {$$ = create_goto_node(create_identifier_node($2)); }
+	| CONTINUE ';' { $$ = create_continue_node(); }
 	| BREAK ';' { $$ = create_break_node(); }
 	| RETURN ';' { $$ = create_return_node(NULL); }
 	| RETURN expression ';' { $$ = create_return_node($2); }
 	;
 
 program
-	: external_declaration
-	| program external_declaration
+	: external_declaration { root = $1; }
+	| program external_declaration 
 	;
 
 external_declaration
-	: function_definition
-	| declaration
+	: function_definition { $$ = $1; }
+	| declaration { $$ = $1; }
 	;
 
 function_definition
     : declaration_specifiers declarator declaration_list compound_statement 
-    | declaration_specifiers declarator compound_statement { root = create_function_declaration_node($1,$2,$3); }
+    | declaration_specifiers declarator compound_statement { $$ = create_function_declaration_node($1,$2,$3); }
     ;
 
 declaration_list

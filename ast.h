@@ -21,6 +21,12 @@ typedef enum NodeType {
     BREAK_NODE,
     TERNARY_OPERATOR_NODE,
     RETURN_NODE,
+    GOTO_NODE,
+    CONTINUE_NODE,
+    PREFIX_INCREMENT_NODE,
+    POSTFIX_INCEMENT_NODE,
+    PREFIX_DECREMENT_NODE,
+    POSTFIX_DECREMENT_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -151,6 +157,37 @@ typedef struct {
     Node base;
     Node* expression;
 } ReturnNode;
+
+typedef struct {
+    Node base;
+    Node* identifier;
+} GotoNode;
+
+typedef struct {
+    Node base;
+    Node* expression;
+} ContinueNode;
+
+typedef struct {
+    Node base;
+    Node* expression;
+} PrefixIncrement;
+
+typedef struct {
+    Node base;
+    Node* expression;
+} PostfixIncrement;
+
+typedef struct {
+    Node base;
+    Node* expression;
+} PrefixDecrement;
+
+typedef struct {
+    Node base;
+    Node* expression;
+} PostfixDecrement;
+
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -172,6 +209,12 @@ Node* create_default_node(Node* body);
 Node* create_break_node();
 Node* create_ternary_operator_node(Node* condition, Node* then_statement, Node* else_statement);
 Node* create_return_node(Node* expression);
+Node* create_goto_node(Node* identifier);
+Node* create_continue_node();
+Node* create_prefix_increment_node(Node* expression);
+Node* create_postfix_increment_node(Node* expression);
+Node* create_prefix_decrement_node(Node* expression);
+Node* create_postfix_decrement_node(Node* expression);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -192,4 +235,10 @@ void print_default_node(Node* node);
 void print_break_node(Node* node);
 void print_ternary_operator_node(Node* node);
 void print_return_node(Node* node);
+void print_goto_node(Node* node);
+void print_continue_node(Node* node);
+void print_prefix_increment_node(Node* node);
+void print_postfix_increment_node(Node* node);
+void print_prefix_decrement_node(Node* node);
+void print_postfix_decrement_node(Node* node);
 #endif // AST_H

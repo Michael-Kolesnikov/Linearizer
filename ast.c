@@ -238,6 +238,44 @@ Node* create_return_node(Node* expression){
     node->expression = expression;
 }
 
+Node* create_goto_node(Node* identifier){
+    GotoNode* node = (GotoNode*)malloc(sizeof(GotoNode));
+    node->base.type = GOTO_NODE;
+    node->base.print = print_goto_node;
+    node->identifier = identifier;
+}
+
+Node* create_continue_node(){
+    ContinueNode* node = (ContinueNode*)malloc(sizeof(ContinueNode));
+    node->base.type = CONTINUE_NODE;
+    node->base.print = print_continue_node;
+}
+
+Node* create_prefix_increment_node(Node* expression){
+    PrefixIncrement* node = (PrefixIncrement*)malloc(sizeof(PrefixIncrement));
+    node->base.type = PREFIX_INCREMENT_NODE;
+    node->base.print = print_prefix_increment_node;
+    node->expression = expression;
+}
+Node* create_postfix_increment_node(Node* expression){
+    PostfixIncrement* node = (PostfixIncrement*)malloc(sizeof(PostfixIncrement));
+    node->base.type = POSTFIX_INCEMENT_NODE;
+    node->base.print = print_postfix_increment_node;
+    node->expression = expression;
+}
+Node* create_prefix_decrement_node(Node* expression){
+    PrefixDecrement* node = (PrefixDecrement*)malloc(sizeof(PrefixDecrement));
+    node->base.type = PREFIX_DECREMENT_NODE;
+    node->base.print = print_prefix_decrement_node;
+    node->expression = expression;
+}
+Node* create_postfix_decrement_node(Node* expression){
+    PostfixDecrement* node = (PostfixDecrement*)malloc(sizeof(PostfixDecrement));
+    node->base.type = POSTFIX_DECREMENT_NODE;
+    node->base.print = print_postfix_decrement_node;
+    node->expression = expression;
+}
+
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
         printf("Invalid IdentifierNode\n");
@@ -447,4 +485,38 @@ void print_return_node(Node* node){
     if(return_node->expression != NULL){
         return_node->expression->print(return_node->expression);
     }
+}
+
+void print_goto_node(Node* node){
+    GotoNode* goto_node = (GotoNode*)node;
+    printf("goto: ");
+    goto_node->identifier->print(goto_node->identifier);
+}
+
+void print_continue_node(Node* node){
+    printf("continue node\n");
+}
+
+void print_prefix_increment_node(Node* node){
+    printf("prefix increment: ");
+    PrefixIncrement* incr_node = (PrefixDecrement*)node;
+    incr_node->expression->print(incr_node->expression);
+}
+
+void print_postfix_increment_node(Node* node){
+    printf("postfix increment: ");
+    PostfixIncrement* incr_node = (PostfixIncrement*)node;
+    incr_node->expression->print(incr_node->expression);
+}
+
+void print_prefix_decrement_node(Node* node){
+    printf("prefix decrement: ");
+    PrefixDecrement* dec_node = (PrefixDecrement*)node;
+    dec_node->expression->print(dec_node->expression);
+}
+
+void print_postfix_decrement_node(Node* node){
+    printf("postfix decrement: ");
+    PostfixDecrement* dec_node = (PostfixDecrement*)node;
+    dec_node->expression->print(dec_node->expression);
 }
