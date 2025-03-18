@@ -278,10 +278,17 @@ Node* create_postfix_decrement_node(Node* expression){
 
 Node* create_unary_operator_expression_node(char* unary_operator, Node* expression){
     UnaryOperatorExpressonNode* node = (UnaryOperatorExpressonNode*)malloc(sizeof(UnaryOperatorExpressonNode));
-    node->base.type = UNARY_OPERATOR_EXPRESSION;
+    node->base.type = UNARY_OPERATOR_EXPRESSION_NODE;
     node->base.print = print_unary_operator_expression_node;
     node->unary_operator = strdup(unary_operator);
     node->expression = expression;
+}
+
+Node* create_pointer_node(Node* declarator){
+    PointerNode* node = (PointerNode*)malloc(sizeof(PointerNode));
+    node->base.type = POINTER_NODE;
+    node->base.print = print_pointer_node;
+    node->declarator = declarator;
 }
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
@@ -531,4 +538,12 @@ void print_unary_operator_expression_node(Node* node){
     UnaryOperatorExpressonNode* unar_node = (UnaryOperatorExpressonNode*)node;
     printf("unary operator: %s\n", unar_node->unary_operator);
     unar_node->expression->print(unar_node->expression);
+}
+
+void print_pointer_node(Node* node){
+    PointerNode* pointer_node = (PointerNode*)node;
+    printf("pointer *: ");
+
+    printf("declarator: ");
+    pointer_node->declarator->print(pointer_node->declarator);
 }

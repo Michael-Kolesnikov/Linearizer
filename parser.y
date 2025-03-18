@@ -46,7 +46,7 @@
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
-%type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition
+%type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -306,7 +306,7 @@ type_qualifier
 	;
 
 declarator
-    : pointer direct_declarator
+    : pointer direct_declarator { $$ = create_pointer_node($2); }
     | direct_declarator {$$ = $1;}
     ;
 
@@ -326,9 +326,14 @@ direct_declarator
 	| direct_declarator '(' ')' { $$ = $1;}
     | direct_declarator '(' identifier_list ')'
 	;
+
 pointer
-    : '*'
-    ;
+    : '*' type_qualifier_list pointer
+	| '*' type_qualifier_list
+	| '*' pointer
+	| '*'
+	;
+
 
 type_qualifier_list
 	: type_qualifier
@@ -362,7 +367,7 @@ type_name
 	;
 
 abstract_declarator
-	: pointer direct_abstract_declarator
+	: pointer direct_abstract_declarator { $$ = create_pointer_node($2); }
 	| pointer
 	| direct_abstract_declarator
 	;
