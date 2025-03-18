@@ -83,7 +83,7 @@ unary_expression
 	: postfix_expression { $$ = $1; }
 	| INCR_OP unary_expression { $$ = create_prefix_increment_node($2); }
 	| DECR_OP unary_expression { $$ = create_prefix_decrement_node($2); }
-	| unary_operator cast_expression
+	| unary_operator cast_expression { $$ = create_unary_operator_expression_node($1, $2); }
 	;
 
 unary_operator

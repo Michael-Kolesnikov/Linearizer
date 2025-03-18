@@ -27,6 +27,7 @@ typedef enum NodeType {
     POSTFIX_INCEMENT_NODE,
     PREFIX_DECREMENT_NODE,
     POSTFIX_DECREMENT_NODE,
+    UNARY_OPERATOR_EXPRESSION,
 } NodeType;
 
 typedef struct Node{
@@ -188,6 +189,12 @@ typedef struct {
     Node* expression;
 } PostfixDecrement;
 
+typedef struct {
+    Node base;
+    Node* expression;
+    char* unary_operator;
+} UnaryOperatorExpressonNode;
+
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -215,6 +222,7 @@ Node* create_prefix_increment_node(Node* expression);
 Node* create_postfix_increment_node(Node* expression);
 Node* create_prefix_decrement_node(Node* expression);
 Node* create_postfix_decrement_node(Node* expression);
+Node* create_unary_operator_expression_node(char* unary_operator, Node* expression);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -241,4 +249,5 @@ void print_prefix_increment_node(Node* node);
 void print_postfix_increment_node(Node* node);
 void print_prefix_decrement_node(Node* node);
 void print_postfix_decrement_node(Node* node);
+void print_unary_operator_expression_node(Node* node);
 #endif // AST_H
