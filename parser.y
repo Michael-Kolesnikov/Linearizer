@@ -30,7 +30,6 @@
 
 %token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
 %token COMMENT CHARACTER PREPROCESSOR
-%start program
 %union{
 	Node* node;
 	char* str;
@@ -47,6 +46,7 @@
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
+%start program
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -73,10 +73,18 @@ postfix_expression
 	: primary_expression { $$ = $1; }
 	| postfix_expression '[' expression ']'
 	| postfix_expression '(' ')'
+	| postfix_expression '(' argument_expression_list ')'
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression POINTER_OP IDENTIFIER
 	| postfix_expression INCR_OP { $$ = create_postfix_increment_node($1); }
 	| postfix_expression DECR_OP { $$ = create_postfix_decrement_node($1); }
+	| '(' type_name ')' '{' initializer_list '}'
+	| '(' type_name ')' '{' initializer_list ',' '}'
+	;
+
+argument_expression_list
+	: assignment_expression
+	| argument_expression_list ',' assignment_expression
 	;
 
 unary_expression
@@ -97,6 +105,7 @@ unary_operator
 
 cast_expression
 	: unary_expression { $$ = $1; }
+	| '(' type_name ')' cast_expression
 	;
 
 multiplicative_expression
@@ -202,6 +211,8 @@ declaration
 declaration_specifiers
     : type_specifiers declaration_specifiers
     | type_specifiers {$$ = $1;}
+	| type_qualifier declaration_specifiers
+	| type_qualifier
     ;
 
 init_declarator_list
@@ -367,7 +378,7 @@ type_name
 	;
 
 abstract_declarator
-	: pointer direct_abstract_declarator { $$ = create_pointer_node($2); }
+	: pointer direct_abstract_declarator
 	| pointer
 	| direct_abstract_declarator
 	;
