@@ -1,6 +1,7 @@
 %{
     #include <stdio.h>
 	#include <stdlib.h>
+	#include <string.h>
 	#include "ast.h"
 	
 
@@ -205,7 +206,7 @@ constant_expression
 	;
 
 declaration
-    : declaration_specifiers ';' { $$ = $1;  }
+    : declaration_specifiers ';' { $$ = $1; }
     | declaration_specifiers init_declarator_list ';' {
 		DeclarationNode* decl_node = (DeclarationNode*)$2;
 		decl_node->type_specifier = strdup($1);
@@ -384,7 +385,8 @@ parameter_declaration
 		Node* node = create_declaration_node($2,create_empty_statement_node()); 
 		DeclarationNode* decl_node = (DeclarationNode*)node;
 		decl_node->type_specifier = strdup($1);
-		$$ = decl_node;
+		
+		$$ = (Node*)decl_node;
 	}
 	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
@@ -477,7 +479,11 @@ labeled_statement
 	;
 
 compound_statement
-	: '{' '}' { $$ = create_empty_statement_node(); }
+	: '{' '}' {
+		Node** statements = (Node**)malloc(1 * sizeof(Node*));
+		statements[0] = create_empty_statement_node();
+		$$ = create_compound_statement_node(statements,1);
+	}
 	| '{'  block_item_list '}'{ $$ = $2;}
 	;
 
