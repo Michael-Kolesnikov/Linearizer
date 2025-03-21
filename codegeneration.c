@@ -103,7 +103,7 @@ void generate_code_from_ast(Node* node, FILE* output) {
         case FUNCTION_DECLARATION_NODE: {
             FunctionDeclarationNode* func_decl_node = (FunctionDeclarationNode*)node;
             fprintf(output, "%s ", func_decl_node->return_type);
-            generate_code_from_ast(func_decl_node->name, output);
+            // generate_code_from_ast(func_decl_node->name, output);
             fprintf(output, "() {\n");
             generate_code_from_ast(func_decl_node->body, output);
             fprintf(output, "}\n");
