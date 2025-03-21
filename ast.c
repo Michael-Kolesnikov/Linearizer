@@ -3,6 +3,19 @@
 #include <string.h>
 #include "ast.h"
 
+#define COLOR_RESET "\x1b[0m"
+#define COLOR_BLUE "\x1b[34m"
+#define COLOR_GREEN "\x1b[32m"
+#define COLOR_RED "\x1b[41m"
+#define COLOR_YELLOW "\x1b[33m"
+static int indent_level = 0;
+
+void print_indent() {
+    for (int i = 0; i < indent_level; i++) {
+        printf("  ");
+    }
+}
+
 Node* create_identifier_node(char* name){
     IdentifierNode* node = (IdentifierNode*)malloc(sizeof(IdentifierNode));
     if (!node) {
@@ -257,18 +270,21 @@ Node* create_prefix_increment_node(Node* expression){
     node->base.print = print_prefix_increment_node;
     node->expression = expression;
 }
+
 Node* create_postfix_increment_node(Node* expression){
     PostfixIncrement* node = (PostfixIncrement*)malloc(sizeof(PostfixIncrement));
     node->base.type = POSTFIX_INCEMENT_NODE;
     node->base.print = print_postfix_increment_node;
     node->expression = expression;
 }
+
 Node* create_prefix_decrement_node(Node* expression){
     PrefixDecrement* node = (PrefixDecrement*)malloc(sizeof(PrefixDecrement));
     node->base.type = PREFIX_DECREMENT_NODE;
     node->base.print = print_prefix_decrement_node;
     node->expression = expression;
 }
+
 Node* create_postfix_decrement_node(Node* expression){
     PostfixDecrement* node = (PostfixDecrement*)malloc(sizeof(PostfixDecrement));
     node->base.type = POSTFIX_DECREMENT_NODE;
@@ -308,278 +324,415 @@ Node* create_function_declarator_node(Node* declarator, Node* parameters){
     node->base.print = print_function_declarator_node;
     return (Node*)node;
 }
+
 void print_identifier_node(Node* node){
-    if (!node || node->type != IDENTIFIER_NODE) {
-        printf("Invalid IdentifierNode\n");
-        return;
-    }
     IdentifierNode* id_node = (IdentifierNode*)node;
-    printf("Identifier: %s\n",id_node->name);
+    print_indent();
+    printf(COLOR_BLUE "Identifier Node: " COLOR_GREEN "%s" COLOR_RESET "\n", id_node->name);
 }
 
 void print_const_node(Node* node){
-    if (!node || node->type != CONSTANT_NODE) {
-        printf("Invalid ConstantNode\n");
-        return;
-    }
     ConstantNode* const_node = (ConstantNode*)node;
+    print_indent();
     if (const_node->const_type == CONST_INT) {
-        printf("Constant (int): %d\n", const_node->value.i_value);
+        printf(COLOR_BLUE "Constant (int) Node: " COLOR_GREEN "%d\n" COLOR_RESET, const_node->value.i_value);
     } else if (const_node->const_type == CONST_FLOAT) {
-        printf("Constant (float): %f\n", const_node->value.f_value);
+        printf(COLOR_BLUE "Constant (float) Node: " COLOR_GREEN " %f\n" COLOR_RESET, const_node->value.f_value);
     } else {
-        printf("Constant: Unknown type\n");
-    }
-}
-
-static char* node_type_to_string(NodeType type) {
-    switch (type) {
-        case IDENTIFIER_NODE: return "IDENTIFIER_NODE";
-        case CONSTANT_NODE: return "CONSTANT_NODE";
-        case BINARY_OPERATION_NODE: return "BINARY_OP_NODE";
-        default: return "Unknown";
+        printf(COLOR_RED "Constant: Unknown type" COLOR_RESET "\n");
     }
 }
 
 void print_binary_operation_node(Node* node){
-    if (!node || node->type != BINARY_OPERATION_NODE) {
-        printf("Invalid BinOpNode\n");
-        return;
-    }
     BinaryOperationNode* bin_node = (BinaryOperationNode*)node;
-    printf("Binary Operation: %s\n", bin_node->op);
+    printf(COLOR_BLUE "Binary operation Node: " COLOR_YELLOW "%s" COLOR_RESET "\n", bin_node->op);
+    print_indent();
     if(bin_node->left == NULL){
     }else{
-        printf("Left type: %s (%d)\n", node_type_to_string(bin_node->left->type), bin_node->left->type);
+        printf("Left:\n", bin_node->op);
+        indent_level++;
         bin_node->left->print(bin_node->left);
+        indent_level--;
     }
+
     if(bin_node->right == NULL){
     }else{
-        printf("Right type: %s (%d)\n", node_type_to_string(bin_node->right->type), bin_node->right->type);
+        printf("Right:\n", bin_node->op);
+        indent_level++;
         bin_node->right->print(bin_node->right);
+        indent_level--;
     }
 }
 
 void print_declaration_node(Node* node){
-    if (!node || node->type != DECLARATION_NODE) {
-        printf("Invalid BinOpNode\n");
-        return;
-    }
     DeclarationNode* declaration_node = (DeclarationNode*)node;
-    printf("declorator type: %s\n", declaration_node->type_specifier);
-
-    printf("declarator identifier: ");
+    print_indent();
+    printf( COLOR_BLUE "Declaration Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Declarator type: " COLOR_GREEN "%s" COLOR_RESET "\n", declaration_node->type_specifier);
+    print_indent();
+    printf("Declarator identifier:\n");
+    indent_level++;
     declaration_node->identifier->print(declaration_node->identifier);
-    if(declaration_node->initializer == NULL){
-        printf("no initializer\n");
-    }else{
-        printf("declarator initializer: ");
+    indent_level--;
+    if(declaration_node->initializer->type != EMPTY_STATEMENT_NODE){
+        print_indent();
+        printf("declarator initializer: \n");
+        indent_level++;
         declaration_node->initializer->print(declaration_node->initializer);
+        indent_level--;
     }
+    indent_level--;
 }
 
 void print_assignment_node(Node* node){
-    if (!node || node->type != ASSIGNMENT_NODE) {
-        printf("Invalid AssignmentNode\n");
-        return;
-    }
     AssignmentNode* declaration_node = (AssignmentNode*)node;
-    printf("assignment left part: ");
+    print_indent();
+    printf(COLOR_BLUE "Assignment Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Operation: " COLOR_YELLOW "%s" COLOR_RESET "\n",declaration_node->op);
+    print_indent();
+    printf("Left: \n");
+    indent_level++;
     declaration_node->left->print(declaration_node->left);
-    printf("operation: %s\n", declaration_node->op);
-    printf("assignment right part: ");
+    indent_level--;
+    print_indent();
+    printf("Right: \n");
+    indent_level++;
     declaration_node->right->print(declaration_node->right);
-
+    indent_level--;
+    indent_level--;
 }
 
 void print_logical_operation_node(Node* node){
-    if (!node || node->type != LOGICAL_OPERATION_NODE) {
-        printf("Invalid LogicalNode\n");
-        return;
-    }
     LogicalOperationNode* declaration_node = (LogicalOperationNode*)node;
-    printf("Operation %s\n", declaration_node->op);
-    printf("Left: ");
+    print_indent();
+    printf(COLOR_BLUE "Logical operation Node:"COLOR_RESET"\n");
+    indent_level++;
+    print_indent();
+    printf("Operation: " COLOR_YELLOW "%s" COLOR_RESET "\n", declaration_node->op);
+    print_indent();
+    printf("Left: \n");
+    indent_level++;
     declaration_node->left->print(declaration_node->left);
-    printf("Right: ");
+    indent_level--;
+    print_indent();
+    printf("Right: \n");
+    indent_level++;
     declaration_node->right->print(declaration_node->right);
+    indent_level--;
+    indent_level--;
 }
 
 void print_if_node(Node* node){
-    if (!node || node->type != IF_NODE) {
-        printf("Invalid LogicalNode\n");
-        return;
-    }
     IfNode* if_node = (IfNode*)node;
-    printf("If node Condition: ");
+    print_indent();
+    printf(COLOR_BLUE "If Node" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("If Condition: \n");
+    indent_level++;
     if_node->condition->print(if_node->condition);
-    printf("IF statement: ");
+    indent_level--;
+    print_indent();
+    printf("Then: \n");
+    indent_level++;
     if_node->then_statement->print(if_node->then_statement);
+    indent_level--;
     if(if_node->else_statement != NULL){
-        printf("ELSE statement: ");
+        print_indent();
+        printf("Else: \n");
+        indent_level++;
         if_node->else_statement->print(if_node->else_statement);
+        indent_level--;
     }
-    
 }
 
 void print_expression_statement_node(Node* node){
-    if (!node || node->type != EXPRESSION_STATEMENT_NODE) {
-        printf("Invalid ExpressionStatementNode\n");
-        return;
-    }
     ExpressionStatementNode* expression_statement_node = (ExpressionStatementNode*)node;
-    printf("Expression statement: ");
+    print_indent();
+    printf(COLOR_BLUE "Expression statement Node: " COLOR_RESET "\n");
+    indent_level++;
     expression_statement_node->expr->print(expression_statement_node->expr);
+    indent_level--;
 }
 
 void print_empty_statement_node(Node* node){
-    printf("empty \t");
+    print_indent();
+    printf(COLOR_BLUE "Empty statement: " COLOR_GREEN "\" \"" COLOR_RESET "\n");
 }
+
 void print_compound_statement_node(Node* node){
     CompoundStatementNode* compound_node = (CompoundStatementNode*)node;
-    printf("compound Node: ");
-    printf("%d\n",compound_node->count);
+    print_indent();
+    printf(COLOR_BLUE "Compounds statements Node, count: %d" COLOR_RESET "\n",compound_node->count);
+    indent_level++;
     for(int i = 0; i < compound_node->count; i++){
-        printf("[%d]: ",i);
+        print_indent();
+        printf("statement[%d]: \n",i);
+        indent_level++;
         compound_node->statements[i]->print(compound_node->statements[i]);
+        indent_level--;
     }
+    indent_level--;
 }
 
 void print_function_declaration_node(Node* node){
     FunctionDeclarationNode* func_decl_node = (FunctionDeclarationNode*)node;
-    printf("function type: %s\n",func_decl_node->return_type);
-    printf("function declarator: ");
+    print_indent();
+    printf(COLOR_BLUE "Function declaration Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Function type: " COLOR_GREEN "%s\n" COLOR_RESET,func_decl_node->return_type);
+    print_indent();
+    printf("Function declarator: \n");
+    indent_level++;
     func_decl_node->declarator->print(func_decl_node->declarator);
-    printf("function body: \n");
+    indent_level--;
+    print_indent();
+    printf("Function body: \n");
+    indent_level++;
     func_decl_node->body->print(func_decl_node->body);
+    indent_level--;
+    indent_level--;
 }
+
 void print_string_literal_node(Node* node){
     StringNode* string = (StringNode*)node;
-
-    printf("string: %s",string->value);
+    print_indent();
+    printf(COLOR_BLUE "String Node: " COLOR_GREEN "%s" COLOR_RESET "\n",string->value);
 }
+
 void print_while_node(Node* node){
     WhileNode* while_node = (WhileNode*)node;
-    printf("WHile condition: ");
+    print_indent();
+    printf(COLOR_BLUE "While Node" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("While condition: \n");
+    indent_level++;
     while_node->condition->print(while_node->condition);
-    printf("While body: ");
+    indent_level--;
+    print_indent();
+    printf("While body: \n");
+    indent_level++;
     while_node->body->print(while_node->body);
+    indent_level--;
+    indent_level--;
 }
+
 void print_do_while_node(Node* node){
     DoWhileNode* while_node = (DoWhileNode*)node;
-    printf("doWhile body: ");
+    print_indent();
+    printf(COLOR_BLUE "DoWhile Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("DoWhile body: \n");
+    indent_level++;
     while_node->do_statement->print(while_node->do_statement);
-
-    printf("DoWHile condition: ");
+    indent_level--;
+    print_indent();
+    printf("DoWhile condition: \n");
+    indent_level++;
     while_node->condition->print(while_node->condition);
+    indent_level--;
 }
 
 void print_switch_node(Node* node){
     SwitchNode* switch_node = (SwitchNode*)node;
-    printf("SWITCH EXPRESSION: ");
+    print_indent();
+    printf(COLOR_BLUE "Switch Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Switch expression: \n");
+    indent_level++;
     switch_node->expression->print(switch_node->expression);
-    printf("switch body: ");
+    indent_level--;
+    print_indent();
+    printf("Switch body: \n");
+    indent_level++;
     switch_node->body->print(switch_node->body);
+    indent_level--;
+    indent_level--;
 }
 
 void print_case_node(Node* node){
     CaseNode* case_node = (CaseNode*)node;
-    printf("CASE EXPRESSION: ");
+    print_indent();
+    printf(COLOR_BLUE "Case Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Case expression: \n");
+    indent_level++;
     case_node->expression->print(case_node->expression);
-    printf("case body: ");
+    indent_level--;
+    print_indent();
+    printf("Case body: \n");
+    indent_level++;
     case_node->body->print(case_node->body);
+    indent_level--;
+    indent_level--;
 }
+
 void print_default_node(Node* node){
     DefaultNode* def_node = (DefaultNode*)node;
-    printf("DEFAULT: ");
+    print_indent();
+    printf(COLOR_BLUE "Default Node: " COLOR_RESET " \n");
+    indent_level++;
+    print_indent();
+    printf("Default body: \n");
+    indent_level++;
     def_node->body->print(def_node->body);
+    indent_level--;
+    indent_level--;
 }
 
 void print_break_node(Node* node){
-    printf("break");
+    print_indent();
+    printf(COLOR_BLUE "Break Node: " COLOR_RESET);
+    printf(COLOR_GREEN "break" COLOR_RESET "\n");
 }
 
 void print_ternary_operator_node(Node* node){
     TernaryOperatorNode* ternary_node = (TernaryOperatorNode*)node;
-    printf("ternary Condition: ");
+    print_indent();
+    printf(COLOR_BLUE "Ternary operator Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Ternary condition: \n");
+    indent_level++;
     ternary_node->condition->print(ternary_node->condition);
-    printf("ternary then statement: ");
+    indent_level--;
+    print_indent();
+    printf("Ternary then: \n");
+    indent_level++;
     ternary_node->then_statement->print(ternary_node->then_statement);
+    indent_level--;
     if(ternary_node->else_statement != NULL){
-        printf("ternary ELSE statement: ");
+        print_indent();
+        printf("Ternary else: \n");
+        indent_level++;
         ternary_node->else_statement->print(ternary_node->else_statement);
+        indent_level--;
     }
+    indent_level--;
 }
 
 void print_return_node(Node* node){
     ReturnNode* return_node = (ReturnNode*)node;
-    printf("return: ");
+    print_indent();
+    printf(COLOR_BLUE "Return Node: " COLOR_RESET "\n");
     if(return_node->expression != NULL){
+        indent_level++;
         return_node->expression->print(return_node->expression);
+        indent_level--;
     }
 }
 
 void print_goto_node(Node* node){
     GotoNode* goto_node = (GotoNode*)node;
-    printf("goto: ");
+    print_indent();
+    printf(COLOR_BLUE "Goto Node: " COLOR_RESET "\n");
+    indent_level++;
     goto_node->identifier->print(goto_node->identifier);
+    indent_level--;
 }
 
 void print_continue_node(Node* node){
-    printf("continue node\n");
+    print_indent();
+    printf(COLOR_BLUE "Continue Node: " COLOR_RESET);
+    printf(COLOR_GREEN "continue" COLOR_RESET "\n");
 }
 
 void print_prefix_increment_node(Node* node){
-    printf("prefix increment: ");
     PrefixIncrement* incr_node = (PrefixDecrement*)node;
+    print_indent();
+    printf(COLOR_BLUE "Prefix increment Node: " COLOR_RESET "\n");
+    indent_level++;
     incr_node->expression->print(incr_node->expression);
+    indent_level--;
 }
 
 void print_postfix_increment_node(Node* node){
-    printf("postfix increment: ");
     PostfixIncrement* incr_node = (PostfixIncrement*)node;
+    print_indent();
+    printf(COLOR_BLUE "Postfix increment Node: " COLOR_RESET "\n");
+    indent_level++;
     incr_node->expression->print(incr_node->expression);
+    indent_level--;
 }
 
 void print_prefix_decrement_node(Node* node){
-    printf("prefix decrement: ");
     PrefixDecrement* dec_node = (PrefixDecrement*)node;
+    print_indent();
+    printf(COLOR_BLUE "Prefix decrement Node: " COLOR_RESET "\n");
+    indent_level++;
     dec_node->expression->print(dec_node->expression);
+    indent_level--;
 }
 
 void print_postfix_decrement_node(Node* node){
-    printf("postfix decrement: ");
     PostfixDecrement* dec_node = (PostfixDecrement*)node;
+    print_indent();
+    printf(COLOR_BLUE "Postfix decrement Node: " COLOR_RESET "\n");
+    indent_level++;
     dec_node->expression->print(dec_node->expression);
+    indent_level--;
 }
+
 void print_unary_operator_expression_node(Node* node){
     UnaryOperatorExpressonNode* unar_node = (UnaryOperatorExpressonNode*)node;
-    printf("unary operator: %s\n", unar_node->unary_operator);
+    print_indent();
+    printf(COLOR_BLUE "Unary operator Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Operation: " COLOR_YELLOW "%s" COLOR_RESET "\n", unar_node->unary_operator);
+    print_indent();
+    printf("Expression: \n");
+    indent_level++;
     unar_node->expression->print(unar_node->expression);
+    indent_level--;
 }
 
 void print_pointer_node(Node* node){
     PointerNode* pointer_node = (PointerNode*)node;
-    printf("pointer *: ");
-
-    printf("declarator: ");
+    print_indent();
+    printf(COLOR_BLUE "Pointer Node: " COLOR_RESET " \n");
+    indent_level++;
+    print_indent();
+    printf("Pointer declarator: \n");
+    indent_level++;
     pointer_node->declarator->print(pointer_node->declarator);
+    indent_level--;
+    indent_level--;
 }
 
 void print_parameters_node(Node* node){
     ParametersNode* params_node = (ParametersNode*)node;
-    printf("parameters Node: ");
-    printf("%d\n",params_node->count);
+    print_indent();
+    printf(COLOR_BLUE "Parameters Node, count: %d " COLOR_RESET "\n", params_node->count);
+    indent_level++;
     for(int i = 0; i < params_node->count; i++){
-        printf("parameter [%d]: ",i);
+        print_indent();
+        printf("Parameter [%d]: \n",i);
+        indent_level++;
         params_node->parameters[i]->print(params_node->parameters[i]);
+        indent_level--;
     }
 }
+
 void print_function_declarator_node(Node* node){
     FunctionDeclaratorNode* func_decl_node = (FunctionDeclaratorNode*)node;
-    printf("params: ");
-    func_decl_node->parameters->print(func_decl_node->parameters);
-    printf("declarator: ");
+    print_indent();
+    printf(COLOR_BLUE "Function declarator Node: " COLOR_RESET "\n");
+    indent_level++;
     func_decl_node->declarator->print(func_decl_node->declarator);
-
+    indent_level--;
+    print_indent();
+    printf("Function parameters: \n");
+    indent_level++;
+    func_decl_node->parameters->print(func_decl_node->parameters);
+    indent_level--;
 }
