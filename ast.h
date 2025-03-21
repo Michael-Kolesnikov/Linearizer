@@ -29,6 +29,7 @@ typedef enum NodeType {
     POSTFIX_DECREMENT_NODE,
     UNARY_OPERATOR_EXPRESSION_NODE,
     POINTER_NODE,
+    PARAMETERS_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -106,7 +107,7 @@ typedef struct {
 typedef struct {
     Node base;
     char* return_type;
-    Node* name;
+    Node* declarator;
     Node* body;
 } FunctionDeclarationNode;
 
@@ -200,6 +201,18 @@ typedef struct{
     Node base;
     Node* declarator;
 } PointerNode;
+
+typedef struct{
+    Node base;
+    Node** parameters;
+    int count;
+} ParametersNode;
+
+typedef struct{
+    Node base;
+    Node* declarator;
+    Node* parameters;
+} FunctionDeclaratorNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -211,7 +224,7 @@ Node* create_if_node(Node* condition, Node* then_statement, Node* else_statement
 Node* create_expression_statement_node(Node* expr);
 Node* create_empty_statement_node();
 Node* create_compound_statement_node(Node** statement, int count);
-Node* create_function_declaration_node(char* return_type, Node* name, Node* body);
+Node* create_function_declaration_node(char* return_type, Node* declarator, Node* body);
 Node* create_string_literal_node(char* value);
 Node* create_while_node(Node* condition, Node* body);
 Node* create_do_while_node(Node* do_statement, Node* condition);
@@ -229,6 +242,8 @@ Node* create_prefix_decrement_node(Node* expression);
 Node* create_postfix_decrement_node(Node* expression);
 Node* create_unary_operator_expression_node(char* unary_operator, Node* expression);
 Node* create_pointer_node(Node* declarator);
+Node* create_parameters_node(Node** parameters, int count);
+Node* create_function_declarator_node(Node* declarator, Node* parameters);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -257,4 +272,6 @@ void print_prefix_decrement_node(Node* node);
 void print_postfix_decrement_node(Node* node);
 void print_unary_operator_expression_node(Node* node);
 void print_pointer_node(Node* node);
+void print_parameters_node(Node* node);
+void print_function_declarator_node(Node* node);
 #endif // AST_H

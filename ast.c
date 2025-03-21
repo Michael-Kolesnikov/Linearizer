@@ -159,11 +159,11 @@ Node* create_compound_statement_node(Node** statement, int count){
     return (Node*)node;
 }
 
-Node* create_function_declaration_node(char* return_type, Node* name, Node* body){
+Node* create_function_declaration_node(char* return_type, Node* declarator, Node* body){
     FunctionDeclarationNode* node = (FunctionDeclarationNode*)malloc(sizeof(FunctionDeclarationNode));
     node->base.type = FUNCTION_DECLARATION_NODE;
     node->base.print = print_function_declaration_node;
-    node->name = name;
+    node->declarator = declarator;
     node->return_type = strdup(return_type);
     node->body = body;
 }
@@ -289,6 +289,24 @@ Node* create_pointer_node(Node* declarator){
     node->base.type = POINTER_NODE;
     node->base.print = print_pointer_node;
     node->declarator = declarator;
+}
+
+Node* create_parameters_node(Node** parameters, int count){
+    ParametersNode* node = (ParametersNode*)malloc(sizeof(ParametersNode));
+    
+    node->parameters = parameters;
+    node->count = count;
+    node->base.type = PARAMETERS_NODE;
+    node->base.print= print_parameters_node;
+    return (Node*)node;
+}
+
+Node* create_function_declarator_node(Node* declarator, Node* parameters){
+    FunctionDeclaratorNode* node = (FunctionDeclaratorNode*)malloc(sizeof(FunctionDeclaratorNode));
+    node->declarator = declarator;
+    node->parameters = parameters;
+    node->base.print = print_function_declarator_node;
+    return (Node*)node;
 }
 void print_identifier_node(Node* node){
     if (!node || node->type != IDENTIFIER_NODE) {
@@ -430,8 +448,8 @@ void print_compound_statement_node(Node* node){
 void print_function_declaration_node(Node* node){
     FunctionDeclarationNode* func_decl_node = (FunctionDeclarationNode*)node;
     printf("function type: %s\n",func_decl_node->return_type);
-    printf("function name: ");
-    func_decl_node->name->print(func_decl_node->name);
+    printf("function declarator: ");
+    func_decl_node->declarator->print(func_decl_node->declarator);
     printf("function body: \n");
     func_decl_node->body->print(func_decl_node->body);
 }
@@ -546,4 +564,22 @@ void print_pointer_node(Node* node){
 
     printf("declarator: ");
     pointer_node->declarator->print(pointer_node->declarator);
+}
+
+void print_parameters_node(Node* node){
+    ParametersNode* params_node = (ParametersNode*)node;
+    printf("parameters Node: ");
+    printf("%d\n",params_node->count);
+    for(int i = 0; i < params_node->count; i++){
+        printf("parameter [%d]: ",i);
+        params_node->parameters[i]->print(params_node->parameters[i]);
+    }
+}
+void print_function_declarator_node(Node* node){
+    FunctionDeclaratorNode* func_decl_node = (FunctionDeclaratorNode*)node;
+    printf("params: ");
+    func_decl_node->parameters->print(func_decl_node->parameters);
+    printf("declarator: ");
+    func_decl_node->declarator->print(func_decl_node->declarator);
+
 }

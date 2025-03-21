@@ -30,11 +30,16 @@
 
 %token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
 %token COMMENT CHARACTER PREPROCESSOR
+%start program
 %union{
 	Node* node;
 	char* str;
 	int ival;
 	double fval;
+	struct {
+        struct ASTNode *node1;
+        struct ASTNode *node2;
+    } pair_node;
 }
 %token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME STRING
 %token <fval> F_CONST
@@ -46,7 +51,7 @@
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
-%start program
+%type <node> parameter_list parameter_declaration parameter_type_list
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -318,7 +323,7 @@ type_qualifier
 
 declarator
     : pointer direct_declarator { $$ = create_pointer_node($2); }
-    | direct_declarator {$$ = $1;}
+    | direct_declarator { $$ = $1;}
     ;
 
 direct_declarator
@@ -333,8 +338,8 @@ direct_declarator
 	| direct_declarator '[' type_qualifier_list assignment_expression ']'
 	| direct_declarator '[' type_qualifier_list ']'
 	| direct_declarator '[' assignment_expression ']'
-    | direct_declarator '(' parameter_type_list ')'
-	| direct_declarator '(' ')' { $$ = $1;}
+    | direct_declarator '(' parameter_type_list ')' { $$ = create_function_declarator_node($1, $3); }
+	| direct_declarator '(' ')' { $$ = create_function_declarator_node($1, create_empty_statement_node());}
     | direct_declarator '(' identifier_list ')'
 	;
 
@@ -353,16 +358,34 @@ type_qualifier_list
 
 parameter_type_list
 	: parameter_list ',' ELLIPSIS
-	| parameter_list
+	| parameter_list { $$ = $1; }
 	;
 
 parameter_list
-	: parameter_declaration
-	| parameter_list ',' parameter_declaration
+	: parameter_declaration { 
+		Node** parameters = (Node**)malloc(1 * sizeof(Node*));
+		parameters[0] = $1;
+		$$ = create_parameters_node(parameters,1);
+	}
+	| parameter_list ',' parameter_declaration {
+		ParametersNode* prev_node = (ParametersNode*)$1;
+		Node** new_parameters = (Node**)realloc(prev_node->parameters, (prev_node->count + 1) * sizeof(Node*));
+		new_parameters[prev_node->count] = $3;
+        
+        prev_node->parameters = new_parameters;
+        prev_node->count++;
+        
+        $$ = $1;
+	}
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator
+	: declaration_specifiers declarator { 
+		Node* node = create_declaration_node($2,create_empty_statement_node()); 
+		DeclarationNode* decl_node = (DeclarationNode*)node;
+		decl_node->type_specifier = strdup($1);
+		$$ = decl_node;
+	}
 	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
 	;
