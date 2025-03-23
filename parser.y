@@ -228,7 +228,7 @@ init_declarator_list
 
 init_declarator
     : declarator '=' initializer { $$ = create_declaration_node($1, $3);}
-	| declarator  { $$ = create_declaration_node($1, NULL);}
+	| declarator  { $$ = create_declaration_node($1, create_empty_statement_node());}
     ;
 
 storage_class_specifier
@@ -517,7 +517,7 @@ expression_statement
 
 selection_statement
 	: IF '(' expression ')' statement ELSE statement { $$ = create_if_node($3,$5, $7);}
-	| IF '(' expression ')' statement  { $$ = create_if_node($3,$5,NULL);}
+	| IF '(' expression ')' statement  { $$ = create_if_node($3,$5,create_empty_statement_node());}
 	| SWITCH '(' expression ')' statement { $$ = create_switch_node($3, $5); }
 	;
 
@@ -533,7 +533,7 @@ jump_statement
 	: GOTO IDENTIFIER ';' {$$ = create_goto_node(create_identifier_node($2)); }
 	| CONTINUE ';' { $$ = create_continue_node(); }
 	| BREAK ';' { $$ = create_break_node(); }
-	| RETURN ';' { $$ = create_return_node(NULL); }
+	| RETURN ';' { $$ = create_return_node(create_empty_statement_node()); }
 	| RETURN expression ';' { $$ = create_return_node($2); }
 	;
 
