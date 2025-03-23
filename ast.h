@@ -30,6 +30,8 @@ typedef enum NodeType {
     UNARY_OPERATOR_EXPRESSION_NODE,
     POINTER_NODE,
     PARAMETERS_NODE,
+    FUNCTION_DECLARATOR_NODE,
+    FOR_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -213,6 +215,14 @@ typedef struct{
     Node* declarator;
     Node* parameters;
 } FunctionDeclaratorNode;
+
+typedef struct{
+    Node base;
+    Node* initialization;
+    Node* condition;
+    Node* update;
+    Node* body;
+} ForNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -244,6 +254,7 @@ Node* create_unary_operator_expression_node(char* unary_operator, Node* expressi
 Node* create_pointer_node(Node* declarator);
 Node* create_parameters_node(Node** parameters, int count);
 Node* create_function_declarator_node(Node* declarator, Node* parameters);
+Node* create_for_node(Node* initialization, Node* condition, Node* update, Node* body);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -274,4 +285,5 @@ void print_unary_operator_expression_node(Node* node);
 void print_pointer_node(Node* node);
 void print_parameters_node(Node* node);
 void print_function_declarator_node(Node* node);
+void print_for_node(Node* node);
 #endif // AST_H

@@ -524,10 +524,10 @@ selection_statement
 iteration_statement
 	: WHILE '(' expression ')' statement { $$ = create_while_node($3,$5);}
 	| DO statement WHILE '(' expression ')' ';' { $$ = create_do_while_node($2,$5); }
-	| FOR '(' expression_statement expression_statement ')' statement
-	| FOR '(' expression_statement expression_statement expression ')' statement
-	| FOR '(' declaration expression_statement ')' statement
-	| FOR '(' declaration expression_statement expression ')' statement
+	| FOR '(' expression_statement expression_statement ')' statement { $$ = create_for_node(create_empty_statement_node(), $3, $4, $6); }
+	| FOR '(' expression_statement expression_statement expression ')' statement { $$ = create_for_node($3, $4, $5, $7); }
+	| FOR '(' declaration expression_statement ')' statement { $$ = create_for_node($3, $4, create_empty_statement_node(), $6); }
+	| FOR '(' declaration expression_statement expression ')' statement { $$ = create_for_node($3, $4, $5, $7); }
 
 jump_statement
 	: GOTO IDENTIFIER ';' {$$ = create_goto_node(create_identifier_node($2)); }

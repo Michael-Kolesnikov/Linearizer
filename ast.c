@@ -322,7 +322,18 @@ Node* create_function_declarator_node(Node* declarator, Node* parameters){
     node->declarator = declarator;
     node->parameters = parameters;
     node->base.print = print_function_declarator_node;
+    node->base.type = FUNCTION_DECLARATOR_NODE;
     return (Node*)node;
+}
+
+Node* create_for_node(Node* initialization, Node* condition, Node* update, Node* body){
+    ForNode* node = (ForNode*)malloc(sizeof(ForNode));
+    node->base.type = FOR_NODE;
+    node->base.print = print_for_node;
+    node->initialization = initialization;
+    node->condition = condition;
+    node->update = update;
+    node->body = body;
 }
 
 void print_identifier_node(Node* node){
@@ -734,5 +745,33 @@ void print_function_declarator_node(Node* node){
     printf("Function parameters: \n");
     indent_level++;
     func_decl_node->parameters->print(func_decl_node->parameters);
+    indent_level--;
+}
+
+void print_for_node(Node* node){
+    ForNode* for_node = (ForNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "For Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("For initialization: \n");
+    indent_level++;
+    for_node->initialization->print(for_node->initialization);
+    indent_level--;
+    print_indent();
+    printf("For condition: \n");
+    indent_level++;
+    for_node->condition->print(for_node->condition);
+    indent_level--;
+    print_indent();
+    printf("For update: \n");
+    indent_level++;
+    for_node->update->print(for_node->update);
+    indent_level--;
+    print_indent();
+    printf("For body: \n");
+    indent_level++;
+    for_node->body->print(for_node->body);
+    indent_level--;
     indent_level--;
 }
