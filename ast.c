@@ -356,23 +356,25 @@ void print_const_node(Node* node){
 
 void print_binary_operation_node(Node* node){
     BinaryOperationNode* bin_node = (BinaryOperationNode*)node;
-    printf(COLOR_BLUE "Binary operation Node: " COLOR_YELLOW "%s" COLOR_RESET "\n", bin_node->op);
     print_indent();
-    if(bin_node->left == NULL){
-    }else{
+    printf(COLOR_BLUE "Binary operation Node: " COLOR_YELLOW "%s" COLOR_RESET "\n", bin_node->op);
+    indent_level++;
+    if(bin_node->left != NULL){
+    print_indent();
         printf("Left:\n", bin_node->op);
         indent_level++;
         bin_node->left->print(bin_node->left);
         indent_level--;
     }
 
-    if(bin_node->right == NULL){
-    }else{
+    if(bin_node->right != NULL){
+        print_indent();
         printf("Right:\n", bin_node->op);
         indent_level++;
         bin_node->right->print(bin_node->right);
         indent_level--;
     }
+    indent_level--;
 }
 
 void print_declaration_node(Node* node){
@@ -452,7 +454,7 @@ void print_if_node(Node* node){
     indent_level++;
     if_node->then_statement->print(if_node->then_statement);
     indent_level--;
-    if(if_node->else_statement != NULL){
+    if(if_node->else_statement->type != EMPTY_STATEMENT_NODE){
         print_indent();
         printf("Else: \n");
         indent_level++;
@@ -621,7 +623,7 @@ void print_ternary_operator_node(Node* node){
     indent_level++;
     ternary_node->then_statement->print(ternary_node->then_statement);
     indent_level--;
-    if(ternary_node->else_statement != NULL){
+    if(ternary_node->else_statement->type != EMPTY_STATEMENT_NODE){
         print_indent();
         printf("Ternary else: \n");
         indent_level++;
@@ -635,7 +637,7 @@ void print_return_node(Node* node){
     ReturnNode* return_node = (ReturnNode*)node;
     print_indent();
     printf(COLOR_BLUE "Return Node: " COLOR_RESET "\n");
-    if(return_node->expression != NULL){
+    if(return_node->expression->type != EMPTY_STATEMENT_NODE){
         indent_level++;
         return_node->expression->print(return_node->expression);
         indent_level--;
