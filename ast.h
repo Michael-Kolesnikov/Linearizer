@@ -32,6 +32,8 @@ typedef enum NodeType {
     PARAMETERS_NODE,
     FUNCTION_DECLARATOR_NODE,
     FOR_NODE,
+    ARGUMENTS_NODE,
+    FUNCTION_CALL_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -223,6 +225,18 @@ typedef struct{
     Node* update;
     Node* body;
 } ForNode;
+
+typedef struct {
+    Node base;
+    Node** arguments;
+    int count;
+} ArgumentsNode;
+
+typedef struct {
+    Node base;
+    Node* name;
+    Node* arguments;
+} FunctionCallNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -255,6 +269,8 @@ Node* create_pointer_node(Node* declarator);
 Node* create_parameters_node(Node** parameters, int count);
 Node* create_function_declarator_node(Node* declarator, Node* parameters);
 Node* create_for_node(Node* initialization, Node* condition, Node* update, Node* body);
+Node* create_arguments_node(Node** arguments, int count);
+Node* create_function_call_node(Node* name, Node* arguments);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -286,4 +302,6 @@ void print_pointer_node(Node* node);
 void print_parameters_node(Node* node);
 void print_function_declarator_node(Node* node);
 void print_for_node(Node* node);
+void print_arguments_node(Node* node);
+void print_function_call_node(Node* node);
 #endif // AST_H

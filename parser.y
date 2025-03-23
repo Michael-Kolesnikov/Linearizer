@@ -52,7 +52,7 @@
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
-%type <node> parameter_list parameter_declaration parameter_type_list
+%type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -78,8 +78,8 @@ string
 postfix_expression
 	: primary_expression { $$ = $1; }
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')'
-	| postfix_expression '(' argument_expression_list ')'
+	| postfix_expression '(' ')' { $$ = create_function_call_node($1, create_empty_statement_node()); }
+	| postfix_expression '(' argument_expression_list ')' { $$ = create_function_call_node($1, $3); }
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression POINTER_OP IDENTIFIER
 	| postfix_expression INCR_OP { $$ = create_postfix_increment_node($1); }
@@ -89,8 +89,21 @@ postfix_expression
 	;
 
 argument_expression_list
-	: assignment_expression
-	| argument_expression_list ',' assignment_expression
+	: assignment_expression {
+		Node** arguments = (Node**)malloc(1 * sizeof(Node*));
+		arguments[0] = $1;
+		$$ = create_arguments_node(arguments, 1);
+	}
+	| argument_expression_list ',' assignment_expression {
+		ArgumentsNode* prev_node = (ArgumentsNode*)$1;
+		Node** new_arguments = (Node**)realloc(prev_node->arguments, (prev_node->count + 1) * sizeof(Node*));
+		new_arguments[prev_node->count] = $3;
+        
+        prev_node->arguments = new_arguments;
+        prev_node->count++;
+        
+        $$ = $1;
+	}
 	;
 
 unary_expression
@@ -582,7 +595,7 @@ int main(int argc, char *argv[]){
         fclose(yyin);
         return 1;
     }
-	yydebug = 0;
+	/* yydebug = 1; */
     yyparse();
 
 	if(root == NULL){

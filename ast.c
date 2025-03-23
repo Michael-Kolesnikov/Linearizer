@@ -336,6 +336,24 @@ Node* create_for_node(Node* initialization, Node* condition, Node* update, Node*
     node->body = body;
 }
 
+Node* create_arguments_node(Node** arguments, int count){
+    ArgumentsNode* node = (ArgumentsNode*)malloc(sizeof(ArgumentsNode));
+    node->arguments = arguments;
+    node->count = count;
+    node->base.type = ARGUMENTS_NODE;
+    node->base.print= print_arguments_node;
+    return (Node*)node;
+}
+
+Node* create_function_call_node(Node* name, Node* arguments){
+    FunctionCallNode* node = (FunctionCallNode*)malloc(sizeof(FunctionCallNode));
+    node->name = name;
+    node->arguments = arguments;
+    node->base.type = FUNCTION_CALL_NODE;
+    node->base.print = print_function_call_node;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -774,6 +792,38 @@ void print_for_node(Node* node){
     printf("For body: \n");
     indent_level++;
     for_node->body->print(for_node->body);
+    indent_level--;
+    indent_level--;
+}
+
+void print_arguments_node(Node* node){
+    ParametersNode* arguments_node = (ParametersNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Arguments Node, count: %d " COLOR_RESET "\n", arguments_node->count);
+    indent_level++;
+    for(int i = 0; i < arguments_node->count; i++){
+        print_indent();
+        printf("Argument [%d]: \n",i);
+        indent_level++;
+        arguments_node->parameters[i]->print(arguments_node->parameters[i]);
+        indent_level--;
+    }
+}
+
+void print_function_call_node(Node* node){
+    FunctionCallNode* function_call_node = (FunctionCallNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Function call Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("function name: \n");
+    indent_level++;
+    function_call_node->name->print(function_call_node->name);
+    indent_level--;
+    print_indent();
+    printf("arguments: \n");
+    indent_level++;
+    function_call_node->arguments->print(function_call_node->arguments);
     indent_level--;
     indent_level--;
 }
