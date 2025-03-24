@@ -45,14 +45,14 @@
 %token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME STRING
 %token <fval> F_CONST
 %token <ival> I_CONST
-%type <str> assignment_operator declaration_specifiers type_specifiers unary_operator
+%type <str> assignment_operator declaration_specifiers unary_operator
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
 %type <node> expression initializer selection_statement expression_statement statement compound_statement block_item_list block_item
 %type <node> init_declarator init_declarator_list declaration
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
-%type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list
+%type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -111,6 +111,8 @@ unary_expression
 	| INCR_OP unary_expression { $$ = create_prefix_increment_node($2); }
 	| DECR_OP unary_expression { $$ = create_prefix_decrement_node($2); }
 	| unary_operator cast_expression { $$ = create_unary_operator_expression_node($1, $2); }
+	| SIZEOF unary_expression { $$ = create_sizeof_node($2); }
+	| SIZEOF '(' type_name ')' { $$ = create_sizeof_node($3); }
 	;
 
 unary_operator
@@ -222,14 +224,14 @@ declaration
     : declaration_specifiers ';' { $$ = $1; }
     | declaration_specifiers init_declarator_list ';' {
 		DeclarationNode* decl_node = (DeclarationNode*)$2;
-		decl_node->type_specifier = strdup($1);
+		decl_node->type_specifier = $1;
 		$$ = $2;
 		}
     ;
 
 declaration_specifiers
     : type_specifiers declaration_specifiers
-    | type_specifiers {$$ = $1;}
+    | type_specifiers { $$ = $1; }
 	| type_qualifier declaration_specifiers
 	| type_qualifier
     ;
@@ -254,20 +256,20 @@ storage_class_specifier
 	;
 
 type_specifiers
-	: VOID { $$ = $1; }
-	| CHAR { $$ = $1; }
-	| SHORT { $$ = $1; }
-	| INT { $$ = $1; }
-	| LONG { $$ = $1; }
-	| FLOAT { $$ = $1; }
-	| DOUBLE { $$ = $1; }
-	| SIGNED { $$ = $1; }
-	| UNSIGNED { $$ = $1; }
-	| BOOL { $$ = $1; }
-	| COMPLEX { $$ = $1; }
-	| IMAGINARY { $$ = $1;}
+	: VOID { $$ = create_value_node($1); }
+	| CHAR { $$ = create_value_node($1); }
+	| SHORT { $$ = create_value_node($1); }
+	| INT { $$ = create_value_node($1); }
+	| LONG { $$ = create_value_node($1); }
+	| FLOAT { $$ = create_value_node($1); }
+	| DOUBLE { $$ = create_value_node($1); }
+	| SIGNED { $$ = create_value_node($1); }
+	| UNSIGNED { $$ = create_value_node($1); }
+	| BOOL { $$ = create_value_node($1); }
+	| COMPLEX { $$ = create_value_node($1); }
+	| IMAGINARY { $$ = create_value_node($1);}
 	| struct_or_union_specifier
-	| TYPEDEF_NAME { $$ = $1;}	
+	| TYPEDEF_NAME { $$ = create_value_node($1);}	
     ;
 
 struct_or_union_specifier
@@ -294,7 +296,7 @@ struct_declaration
 
 specifier_qualifier_list
 	: type_specifiers specifier_qualifier_list
-	| type_specifiers
+	| type_specifiers { $$ = $1; }
 	| type_qualifier specifier_qualifier_list
 	| type_qualifier
 	;
@@ -397,7 +399,7 @@ parameter_declaration
 	: declaration_specifiers declarator { 
 		Node* node = create_declaration_node($2,create_empty_statement_node()); 
 		DeclarationNode* decl_node = (DeclarationNode*)node;
-		decl_node->type_specifier = strdup($1);
+		decl_node->type_specifier = $1;
 		
 		$$ = (Node*)decl_node;
 	}
@@ -412,7 +414,7 @@ identifier_list
 
 type_name
 	: specifier_qualifier_list abstract_declarator
-	| specifier_qualifier_list
+	| specifier_qualifier_list { $$ = $1; }
 	;
 
 abstract_declarator
@@ -601,7 +603,7 @@ int main(int argc, char *argv[]){
 	if(root == NULL){
 		printf("ROOT IS NULL\n");
 	}else{
-    	root->print(root);
+    	/* root->print(root); */
 		/* generate_code_from_ast(root,yyout); */
 	}
 	fclose(yyin);

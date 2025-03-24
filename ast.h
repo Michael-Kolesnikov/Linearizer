@@ -36,6 +36,8 @@ typedef enum NodeType {
     FUNCTION_CALL_NODE,
     ARRAY_DECLARATION_NODE,
     ARRAY_EXPRESSION_NODE,
+    SIZEOF_NODE,
+    VALUE_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -69,7 +71,7 @@ typedef struct BinaryOperationNode{
 
 typedef struct {
     Node base;
-    char* type_specifier;
+    Node* type_specifier;
     Node* identifier;
     Node* initializer;
 } DeclarationNode;
@@ -112,7 +114,7 @@ typedef struct {
 
 typedef struct {
     Node base;
-    char* return_type;
+    Node* return_type;
     Node* declarator;
     Node* body;
 } FunctionDeclarationNode;
@@ -251,6 +253,17 @@ typedef struct {
     Node* identifier;
     Node* index;
 } ArrayExpressionNode;
+
+typedef struct {
+    Node base;
+    Node* expression;
+} SizeofNode;
+
+typedef struct {
+    Node base;
+    char* value;
+} ValueNode;
+
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -262,7 +275,7 @@ Node* create_if_node(Node* condition, Node* then_statement, Node* else_statement
 Node* create_expression_statement_node(Node* expr);
 Node* create_empty_statement_node();
 Node* create_compound_statement_node(Node** statement, int count);
-Node* create_function_declaration_node(char* return_type, Node* declarator, Node* body);
+Node* create_function_declaration_node(Node* return_type, Node* declarator, Node* body);
 Node* create_string_literal_node(char* value);
 Node* create_while_node(Node* condition, Node* body);
 Node* create_do_while_node(Node* do_statement, Node* condition);
@@ -287,6 +300,8 @@ Node* create_arguments_node(Node** arguments, int count);
 Node* create_function_call_node(Node* name, Node* arguments);
 Node* create_array_declaration_node(Node* declarator, Node* index_expression);
 Node* create_array_expression_node(Node* identifier, Node* index);
+Node* create_sizeof_node(Node* expression);
+Node* create_value_node(char* value);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -322,4 +337,6 @@ void print_arguments_node(Node* node);
 void print_function_call_node(Node* node);
 void print_array_declaration_node(Node* node);
 void print_array_expression_node(Node* node);
+void print_sizeof_node(Node* node);
+void print_value_node(Node* node);
 #endif // AST_H

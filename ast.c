@@ -172,12 +172,12 @@ Node* create_compound_statement_node(Node** statement, int count){
     return (Node*)node;
 }
 
-Node* create_function_declaration_node(char* return_type, Node* declarator, Node* body){
+Node* create_function_declaration_node(Node* return_type, Node* declarator, Node* body){
     FunctionDeclarationNode* node = (FunctionDeclarationNode*)malloc(sizeof(FunctionDeclarationNode));
     node->base.type = FUNCTION_DECLARATION_NODE;
     node->base.print = print_function_declaration_node;
     node->declarator = declarator;
-    node->return_type = strdup(return_type);
+    node->return_type = return_type;
     node->body = body;
 }
 
@@ -372,6 +372,20 @@ Node* create_array_expression_node(Node* identifier, Node* index){
     return (Node*)node;
 }
 
+Node* create_sizeof_node(Node* expression){
+    SizeofNode* node = (SizeofNode*)malloc(sizeof(SizeofNode)); 
+    node->expression = expression;
+    node->base.type = SIZEOF_NODE;
+    node->base.print = print_sizeof_node;
+    return (Node*)node;
+}
+
+Node* create_value_node(char* value){
+    ValueNode* node = (ValueNode*)malloc(sizeof(ValueNode));
+    node->value = strdup(value);
+    node->base.print = print_value_node;
+    return (Node*)node;
+}
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -419,7 +433,10 @@ void print_declaration_node(Node* node){
     printf( COLOR_BLUE "Declaration Node: " COLOR_RESET "\n");
     indent_level++;
     print_indent();
-    printf("Declarator type: " COLOR_GREEN "%s" COLOR_RESET "\n", declaration_node->type_specifier);
+    printf("Declarator type: \n");
+    indent_level++;
+    declaration_node->type_specifier->print(declaration_node->type_specifier);
+    indent_level--;
     print_indent();
     printf("Declarator identifier:\n");
     indent_level++;
@@ -534,7 +551,10 @@ void print_function_declaration_node(Node* node){
     printf(COLOR_BLUE "Function declaration Node:" COLOR_RESET "\n");
     indent_level++;
     print_indent();
-    printf("Function type: " COLOR_GREEN "%s\n" COLOR_RESET,func_decl_node->return_type);
+    printf("Function type: \n");
+    indent_level++;
+    func_decl_node->return_type->print(func_decl_node->return_type);
+    indent_level--;
     print_indent();
     printf("Function declarator: \n");
     indent_level++;
@@ -878,5 +898,28 @@ void print_array_expression_node(Node* node){
     indent_level++;
     array_node->index->print(array_node->index);
     indent_level--;
+    indent_level--;
+}
+
+void print_sizeof_node(Node* node){
+    SizeofNode* sizeof_node = (SizeofNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Sizeof Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Expression: \n");
+    indent_level++;
+    sizeof_node->expression->print(sizeof_node->expression);
+    indent_level--;
+    indent_level--;
+}
+
+void print_value_node(Node* node){
+    ValueNode* val_node = (ValueNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Value Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("value: " COLOR_GREEN "%s" COLOR_RESET "\n", val_node->value);
     indent_level--;
 }
