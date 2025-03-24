@@ -386,6 +386,20 @@ Node* create_value_node(char* value){
     node->base.print = print_value_node;
     return (Node*)node;
 }
+Node* create_member_access_expression_node(Node* object_expression, Node* field_name){
+    MemberAccessExpressionNode* node = (MemberAccessExpressionNode*)malloc(sizeof(MemberAccessExpressionNode));
+    node->base.type = MEMBER_ACCESS_EXPRESSION_NODE;
+    node->base.print = print_member_access_expression_node;
+    node->object_expression = object_expression;
+    node->field_name = field_name;
+}
+Node* create_pointer__member_access_expression_node(Node* pointer_expression, Node* field_name){
+    PointerMemberAccessExpressionNode* node = (PointerMemberAccessExpressionNode*)malloc(sizeof(PointerMemberAccessExpressionNode));
+    node->base.type = POINTER_MEMBER_ACCESS_EXPRESSION_NODE;
+    node->base.print = print_pointer_member_access_expression_node;
+    node->pointer_expression = pointer_expression;
+    node->field_name = field_name;
+}
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -921,5 +935,39 @@ void print_value_node(Node* node){
     indent_level++;
     print_indent();
     printf("value: " COLOR_GREEN "%s" COLOR_RESET "\n", val_node->value);
+    indent_level--;
+}
+void print_member_access_expression_node(Node* node){
+    MemberAccessExpressionNode* mem_node = (MemberAccessExpressionNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Member access expression Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Object expression: \n");
+    indent_level++;
+    mem_node->object_expression->print(mem_node->object_expression);
+    indent_level--;
+    print_indent();
+    printf("Field name: \n");
+    indent_level++;
+    mem_node->field_name->print(mem_node->field_name);
+    indent_level--;
+    indent_level--;
+}
+void print_pointer_member_access_expression_node(Node* node){
+    PointerMemberAccessExpressionNode* mem_node = (PointerMemberAccessExpressionNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Pointer member access expression Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Pointer expression: \n");
+    indent_level++;
+    mem_node->pointer_expression->print(mem_node->pointer_expression);
+    indent_level--;
+    print_indent();
+    printf("Field name: \n");
+    indent_level++;
+    mem_node->field_name->print(mem_node->field_name);
+    indent_level--;
     indent_level--;
 }

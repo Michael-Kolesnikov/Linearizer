@@ -80,8 +80,8 @@ postfix_expression
 	| postfix_expression '[' expression ']' { $$ = create_array_expression_node($1, $3); }
 	| postfix_expression '(' ')' { $$ = create_function_call_node($1, create_empty_statement_node()); }
 	| postfix_expression '(' argument_expression_list ')' { $$ = create_function_call_node($1, $3); }
-	| postfix_expression '.' IDENTIFIER
-	| postfix_expression POINTER_OP IDENTIFIER
+	| postfix_expression '.' IDENTIFIER { $$ = create_member_access_expression_node($1, create_identifier_node($3)); }
+	| postfix_expression POINTER_OP IDENTIFIER { $$ = create_pointer__member_access_expression_node($1,create_identifier_node($3)); }
 	| postfix_expression INCR_OP { $$ = create_postfix_increment_node($1); }
 	| postfix_expression DECR_OP { $$ = create_postfix_decrement_node($1); }
 	| '(' type_name ')' '{' initializer_list '}'
@@ -603,7 +603,7 @@ int main(int argc, char *argv[]){
 	if(root == NULL){
 		printf("ROOT IS NULL\n");
 	}else{
-    	/* root->print(root); */
+    	root->print(root);
 		/* generate_code_from_ast(root,yyout); */
 	}
 	fclose(yyin);

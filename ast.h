@@ -38,6 +38,8 @@ typedef enum NodeType {
     ARRAY_EXPRESSION_NODE,
     SIZEOF_NODE,
     VALUE_NODE,
+    MEMBER_ACCESS_EXPRESSION_NODE,
+    POINTER_MEMBER_ACCESS_EXPRESSION_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -264,6 +266,17 @@ typedef struct {
     char* value;
 } ValueNode;
 
+typedef struct {
+    Node base;
+    Node* object_expression;
+    Node* field_name;
+} MemberAccessExpressionNode;
+
+typedef struct {
+    Node base;
+    Node* pointer_expression;
+    Node* field_name;
+} PointerMemberAccessExpressionNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -302,6 +315,8 @@ Node* create_array_declaration_node(Node* declarator, Node* index_expression);
 Node* create_array_expression_node(Node* identifier, Node* index);
 Node* create_sizeof_node(Node* expression);
 Node* create_value_node(char* value);
+Node* create_member_access_expression_node(Node* object_expression, Node* field_name);
+Node* create_pointer__member_access_expression_node(Node* pointer_expression, Node* field_name);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -339,4 +354,6 @@ void print_array_declaration_node(Node* node);
 void print_array_expression_node(Node* node);
 void print_sizeof_node(Node* node);
 void print_value_node(Node* node);
+void print_member_access_expression_node(Node* node);
+void print_pointer_member_access_expression_node(Node* node);
 #endif // AST_H
