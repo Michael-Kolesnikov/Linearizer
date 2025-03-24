@@ -354,6 +354,24 @@ Node* create_function_call_node(Node* name, Node* arguments){
     return (Node*)node;
 }
 
+Node* create_array_declaration_node(Node* declarator, Node* index_expression){
+    ArrayDeclarationNode* node = (ArrayDeclarationNode*)malloc(sizeof(ArrayDeclarationNode));
+    node->declarator = declarator;
+    node->index_expression = index_expression;
+    node->base.type = ARRAY_DECLARATION_NODE;
+    node->base.print = print_array_declaration_node;
+    return (Node*)node;
+}
+
+Node* create_array_expression_node(Node* identifier, Node* index){
+    ArrayExpressionNode* node = (ArrayExpressionNode*)malloc(sizeof(ArrayExpressionNode));
+    node->identifier = identifier;
+    node->index = index;
+    node->base.type = ARRAY_EXPRESSION_NODE;
+    node->base.print = print_array_expression_node;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -824,6 +842,41 @@ void print_function_call_node(Node* node){
     printf("arguments: \n");
     indent_level++;
     function_call_node->arguments->print(function_call_node->arguments);
+    indent_level--;
+    indent_level--;
+}
+void print_array_declaration_node(Node* node){
+    ArrayDeclarationNode* array_node = (ArrayDeclarationNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Array declaration Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Array declarator: \n");
+    indent_level++;
+    array_node->declarator->print(array_node->declarator);
+    indent_level--;
+    print_indent();
+    printf("Array index: \n");
+    indent_level++;
+    array_node->index_expression->print(array_node->index_expression);
+    indent_level--;
+    indent_level--;
+}
+
+void print_array_expression_node(Node* node){
+    ArrayExpressionNode* array_node = (ArrayExpressionNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Array expression Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Array identifier: \n");
+    indent_level++;
+    array_node->identifier->print(array_node->identifier);
+    indent_level--;
+    print_indent();
+    printf("Array index: \n");
+    indent_level++;
+    array_node->index->print(array_node->index);
     indent_level--;
     indent_level--;
 }

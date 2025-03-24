@@ -77,7 +77,7 @@ string
 
 postfix_expression
 	: primary_expression { $$ = $1; }
-	| postfix_expression '[' expression ']'
+	| postfix_expression '[' expression ']' { $$ = create_array_expression_node($1, $3); }
 	| postfix_expression '(' ')' { $$ = create_function_call_node($1, create_empty_statement_node()); }
 	| postfix_expression '(' argument_expression_list ')' { $$ = create_function_call_node($1, $3); }
 	| postfix_expression '.' IDENTIFIER
@@ -351,7 +351,7 @@ direct_declarator
 	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
 	| direct_declarator '[' type_qualifier_list assignment_expression ']'
 	| direct_declarator '[' type_qualifier_list ']'
-	| direct_declarator '[' assignment_expression ']'
+	| direct_declarator '[' assignment_expression ']' { $$ = create_array_declaration_node($1,$3); }
     | direct_declarator '(' parameter_type_list ')' { $$ = create_function_declarator_node($1, $3); }
 	| direct_declarator '(' ')' { $$ = create_function_declarator_node($1, create_empty_statement_node());}
     | direct_declarator '(' identifier_list ')'

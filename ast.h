@@ -34,6 +34,8 @@ typedef enum NodeType {
     FOR_NODE,
     ARGUMENTS_NODE,
     FUNCTION_CALL_NODE,
+    ARRAY_DECLARATION_NODE,
+    ARRAY_EXPRESSION_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -237,6 +239,18 @@ typedef struct {
     Node* name;
     Node* arguments;
 } FunctionCallNode;
+
+typedef struct {
+    Node base;
+    Node* declarator;
+    Node* index_expression;
+} ArrayDeclarationNode;
+
+typedef struct {
+    Node base;
+    Node* identifier;
+    Node* index;
+} ArrayExpressionNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -271,6 +285,8 @@ Node* create_function_declarator_node(Node* declarator, Node* parameters);
 Node* create_for_node(Node* initialization, Node* condition, Node* update, Node* body);
 Node* create_arguments_node(Node** arguments, int count);
 Node* create_function_call_node(Node* name, Node* arguments);
+Node* create_array_declaration_node(Node* declarator, Node* index_expression);
+Node* create_array_expression_node(Node* identifier, Node* index);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -304,4 +320,6 @@ void print_function_declarator_node(Node* node);
 void print_for_node(Node* node);
 void print_arguments_node(Node* node);
 void print_function_call_node(Node* node);
+void print_array_declaration_node(Node* node);
+void print_array_expression_node(Node* node);
 #endif // AST_H
