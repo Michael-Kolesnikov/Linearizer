@@ -25,7 +25,7 @@
 
 %token	TYPEDEF EXTERN STATIC AUTO REGISTER INLINE
 %token	CONST RESTRICT VOLATILE
-%token	STRUCT UNION ENUM ELLIPSIS
+%token	ENUM ELLIPSIS
 
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
@@ -42,7 +42,7 @@
         struct ASTNode *node2;
     } pair_node;
 }
-%token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME STRING
+%token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME STRING STRUCT UNION
 %token <fval> F_CONST
 %token <ival> I_CONST
 %type <str> assignment_operator declaration_specifiers unary_operator
@@ -53,6 +53,7 @@
 %type <node> init_declarator init_declarator_list declaration
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
 %type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
+%type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -268,29 +269,44 @@ type_specifiers
 	| BOOL { $$ = create_value_node($1); }
 	| COMPLEX { $$ = create_value_node($1); }
 	| IMAGINARY { $$ = create_value_node($1);}
-	| struct_or_union_specifier
+	| struct_or_union_specifier { $$ = $1; }
 	| TYPEDEF_NAME { $$ = create_value_node($1);}	
     ;
 
 struct_or_union_specifier
-	: struct_or_union '{' struct_declaration_list '}'
-	| struct_or_union IDENTIFIER '{' struct_declaration_list '}'
-	| struct_or_union IDENTIFIER
+	: struct_or_union '{' struct_declaration_list '}' { $$ = create_structunion_node($1,create_empty_statement_node(), $3); }
+	| struct_or_union IDENTIFIER '{' struct_declaration_list '}' { $$ = create_structunion_node($1, create_identifier_node($2), $4); }
+	| struct_or_union IDENTIFIER { create_structunion_node($1,create_identifier_node($2), create_empty_statement_node()); }
 	;
 
 struct_or_union
-	: STRUCT
-	| UNION
+	: STRUCT { $$ = create_value_node($1); }
+	| UNION { $$ = create_value_node($1); }
 	;
 
 struct_declaration_list
-	: struct_declaration
-	| struct_declaration_list struct_declaration
+	: struct_declaration {
+		Node** declarations = (Node**)malloc(1 * sizeof(Node*));
+		declarations[0] = $1;
+		$$ = create_struct_declarations_list_node(declarations,1);
+	}
+	| struct_declaration_list struct_declaration {
+		StructDeclarationsListNode* prev_node = (StructDeclarationsListNode*)$1;
+		Node** new_declarations = (Node**)realloc(prev_node->declarations_list, (prev_node->count + 1) * sizeof(Node*));
+		new_declarations[prev_node->count] = $2;
+        prev_node->declarations_list = new_declarations;
+        prev_node->count++;
+        $$ = $1;
+	}
 	;
 
 struct_declaration
 	: specifier_qualifier_list ';'
-	| specifier_qualifier_list struct_declarator_list ';'
+	| specifier_qualifier_list struct_declarator_list ';' {
+		StructDeclaratorNode* node = (StructDeclaratorNode*)$2;
+		node->type = $1;
+		$$ = $2;
+	}
 	| static_assert_declaration
 	;
 
@@ -302,14 +318,14 @@ specifier_qualifier_list
 	;
 
 struct_declarator_list
-	: struct_declarator
+	: struct_declarator { $$ = $1; }
 	| struct_declarator_list ',' struct_declarator
 	;
 
 struct_declarator
-	: ':' constant_expression
-	| declarator ':' constant_expression
-	| declarator
+	: ':' constant_expression { $$ = create_struct_declarator_node(create_empty_statement_node(),$2);}
+	| declarator ':' constant_expression { $$ = create_struct_declarator_node($1, $3); }
+	| declarator { $$ = create_struct_declarator_node($1,create_empty_statement_node()); }
 	;
 
 enum_specifier

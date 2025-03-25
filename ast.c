@@ -400,6 +400,35 @@ Node* create_pointer__member_access_expression_node(Node* pointer_expression, No
     node->pointer_expression = pointer_expression;
     node->field_name = field_name;
 }
+
+Node* create_structunion_node(Node* kind, Node* identifier, Node* body){
+    StructUnionNode* node = (StructUnionNode*)malloc(sizeof(StructUnionNode));
+    node->kind = kind;
+    node->identifier = identifier;
+    node->body = body;
+    node->base.print = print_structunion_node;
+    node->base.type = STRUCTUNION_NODE;
+    return (Node*)node;
+}
+Node* create_struct_declarator_node(Node* declarator, Node* bit_width){
+    StructDeclaratorNode* node = (StructDeclaratorNode*)malloc(sizeof(StructDeclaratorNode));
+    node->declarator = declarator;
+    node->bit_width = bit_width;
+    node->base.print = print_struct_declarator_node;
+    node->base.type = STRUCT_DECLARATOR_NODE;
+    return (Node*)node;
+}
+
+Node* create_struct_declarations_list_node(Node** declarations, int count){
+    StructDeclarationsListNode* node = (StructDeclarationsListNode*)malloc(sizeof(StructDeclarationsListNode));
+    
+    node->declarations_list = declarations;
+    node->count = count;
+    node->base.type = STRUCT_DECLARATIONS_LIST_NODE;
+    node->base.print= print_struct_declarations_list_node;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -879,6 +908,7 @@ void print_function_call_node(Node* node){
     indent_level--;
     indent_level--;
 }
+
 void print_array_declaration_node(Node* node){
     ArrayDeclarationNode* array_node = (ArrayDeclarationNode*)node;
     print_indent();
@@ -937,6 +967,7 @@ void print_value_node(Node* node){
     printf("value: " COLOR_GREEN "%s" COLOR_RESET "\n", val_node->value);
     indent_level--;
 }
+
 void print_member_access_expression_node(Node* node){
     MemberAccessExpressionNode* mem_node = (MemberAccessExpressionNode*)node;
     print_indent();
@@ -954,6 +985,7 @@ void print_member_access_expression_node(Node* node){
     indent_level--;
     indent_level--;
 }
+
 void print_pointer_member_access_expression_node(Node* node){
     PointerMemberAccessExpressionNode* mem_node = (PointerMemberAccessExpressionNode*)node;
     print_indent();
@@ -969,5 +1001,70 @@ void print_pointer_member_access_expression_node(Node* node){
     indent_level++;
     mem_node->field_name->print(mem_node->field_name);
     indent_level--;
+    indent_level--;
+}
+
+void print_structunion_node(Node* node){
+    StructUnionNode* su_node = (StructUnionNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Struct Union Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Kind: \n");
+    indent_level++;
+    su_node->kind->print(su_node->kind);
+    indent_level--;
+    print_indent();
+    printf("Identifier: \n");
+    indent_level++;
+    su_node->identifier->print(su_node->identifier);
+    indent_level--;
+    print_indent();
+    printf("Body: \n");
+    indent_level++;
+    su_node->body->print(su_node->body);
+    indent_level--;
+}
+
+void print_struct_declarator_node(Node* node){
+    StructDeclaratorNode* dec_node = (StructDeclaratorNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Struct declarator Node" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Type: \n");
+    indent_level++;
+    dec_node->type->print(dec_node->type);
+    indent_level--;
+    if(dec_node->declarator->type != EMPTY_STATEMENT_NODE){
+        print_indent();
+        printf("Declarator: \n");
+        indent_level++;
+        dec_node->declarator->print(dec_node->declarator);
+        indent_level--;
+    }
+
+    if(dec_node->bit_width->type != EMPTY_STATEMENT_NODE){
+        print_indent();
+        printf("Bit width: \n");
+        indent_level++;
+        dec_node->bit_width->print(dec_node->bit_width);
+        indent_level--;
+    }
+    indent_level--;
+}
+
+void print_struct_declarations_list_node(Node* node){
+    StructDeclarationsListNode* decs_node = (StructDeclarationsListNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Struct declarations Node, count: %d" COLOR_RESET "\n",decs_node->count);
+    indent_level++;
+    for(int i = 0; i < decs_node->count; i++){
+        print_indent();
+        printf("declaration[%d]: \n",i);
+        indent_level++;
+        decs_node->declarations_list[i]->print(decs_node->declarations_list[i]);
+        indent_level--;
+    }
     indent_level--;
 }
