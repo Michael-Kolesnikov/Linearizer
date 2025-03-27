@@ -43,6 +43,7 @@ typedef enum NodeType {
     STRUCTUNION_NODE,
     STRUCT_DECLARATOR_NODE,
     STRUCT_DECLARATIONS_LIST_NODE,
+    CAST_EXPRESSION_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -301,6 +302,11 @@ typedef struct {
     int count;
 } StructDeclarationsListNode;
 
+typedef struct {
+    Node base;
+    Node* type;
+    Node* expression;
+} CastExpressionNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -344,6 +350,7 @@ Node* create_pointer__member_access_expression_node(Node* pointer_expression, No
 Node* create_structunion_node(Node* kind, Node* identifier, Node* body);
 Node* create_struct_declarator_node(Node* declarator, Node* bit_width);
 Node* create_struct_declarations_list_node(Node** declarations, int count);
+Node* create_cast_expression_node(Node* type, Node* expression);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -386,4 +393,5 @@ void print_pointer_member_access_expression_node(Node* node);
 void print_structunion_node(Node* node);
 void print_struct_declarator_node(Node* node);
 void print_struct_declarations_list_node(Node* node);
+void print_cast_expression_node(Node* node);
 #endif // AST_H

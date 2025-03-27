@@ -127,7 +127,7 @@ unary_operator
 
 cast_expression
 	: unary_expression { $$ = $1; }
-	| '(' type_name ')' cast_expression
+	| '(' type_name ')' cast_expression { $$ = create_cast_expression_node($2,$4); }
 	;
 
 multiplicative_expression
@@ -231,7 +231,9 @@ declaration
     ;
 
 declaration_specifiers
-    : type_specifiers declaration_specifiers
+	: storage_class_specifier declaration_specifiers
+	| storage_class_specifier
+    | type_specifiers declaration_specifiers
     | type_specifiers { $$ = $1; }
 	| type_qualifier declaration_specifiers
 	| type_qualifier
@@ -319,7 +321,7 @@ specifier_qualifier_list
 
 struct_declarator_list
 	: struct_declarator { $$ = $1; }
-	| struct_declarator_list ',' struct_declarator
+	| struct_declarator_list ',' struct_declarator 
 	;
 
 struct_declarator

@@ -429,6 +429,14 @@ Node* create_struct_declarations_list_node(Node** declarations, int count){
     return (Node*)node;
 }
 
+Node* create_cast_expression_node(Node* type, Node* expression){
+    CastExpressionNode* node = (CastExpressionNode*)malloc(sizeof(CastExpressionNode));
+    node->type = type;
+    node->expression = expression;
+    node->base.type = CAST_EXPRESSION_NODE;
+    node->base.print = print_cast_expression_node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -1067,4 +1075,19 @@ void print_struct_declarations_list_node(Node* node){
         indent_level--;
     }
     indent_level--;
+}
+
+void print_cast_expression_node(Node* node){
+    CastExpressionNode* cast_node = (CastExpressionNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Cast expression Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Type: \n");
+    indent_level++;
+    cast_node->type->print(cast_node->type);
+    indent_level--;
+    print_indent();
+    printf("Expression: \n");
+    cast_node->expression->print(cast_node->expression);
 }
