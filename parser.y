@@ -506,7 +506,7 @@ statement
     ;
 
 labeled_statement
-	: IDENTIFIER ':' statement
+	: IDENTIFIER ':' statement { $$ = create_labeled_statement_node($1,$3); }
 	| CASE constant_expression ':' statement { $$ = create_case_node($2, $4); }
 	| DEFAULT ':' statement { $$ = create_default_node($3); }
 	;

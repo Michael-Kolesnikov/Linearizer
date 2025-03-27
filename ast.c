@@ -437,6 +437,14 @@ Node* create_cast_expression_node(Node* type, Node* expression){
     node->base.print = print_cast_expression_node;
 }
 
+Node* create_labeled_statement_node(Node* identifier, Node* statement){
+    LabeledStatementNode* node= (LabeledStatementNode*)malloc(sizeof(LabeledStatementNode));
+    node->identifier = identifier;
+    node->statement = statement;
+    node->base.type = LABELED_STATEMENT_NODE;
+    node->base.print = print_labeled_statement_node;
+    return (Node*)node; 
+}
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -1090,4 +1098,22 @@ void print_cast_expression_node(Node* node){
     print_indent();
     printf("Expression: \n");
     cast_node->expression->print(cast_node->expression);
+}
+
+void print_labeled_statement_node(Node* node){
+    LabeledStatementNode* lbl_node = (LabeledStatementNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Labeled statement Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Label identifier: \n");
+    indent_level++;
+    lbl_node->identifier->print(lbl_node->identifier);
+    indent_level--;
+    print_indent();
+    printf("Label statement: \n");
+    indent_level++;
+    lbl_node->statement->print(lbl_node->statement);
+    indent_level--;
+    indent_level--;
 }
