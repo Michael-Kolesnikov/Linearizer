@@ -35,10 +35,10 @@ int lineno = 1;
 "signed"				{ yylval.str = strdup(yytext); return(SIGNED); }
 "sizeof"				{ return(SIZEOF); }
 "static"				{ return(STATIC); }
-"struct"				{ return(STRUCT); }
+"struct"				{ yylval.str = strdup(yytext); return(STRUCT); }
 "switch"				{ return(SWITCH); }
 "typedef"				{ yylval.str = strdup(yytext); return(TYPEDEF); }
-"union"					{ return(UNION); }
+"union"					{ yylval.str = strdup(yytext); return(UNION); }
 "unsigned"				{ yylval.str = strdup(yytext); return(UNSIGNED); }
 "void"					{ yylval.str = strdup(yytext); return(VOID); }
 "volatile"				{ return(VOLATILE); }
