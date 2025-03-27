@@ -1097,7 +1097,10 @@ void print_cast_expression_node(Node* node){
     indent_level--;
     print_indent();
     printf("Expression: \n");
+    indent_level++;
     cast_node->expression->print(cast_node->expression);
+    indent_level--;
+    indent_level--;
 }
 
 void print_labeled_statement_node(Node* node){
