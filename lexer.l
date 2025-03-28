@@ -4,11 +4,16 @@
 #include <stdio.h>
 #include <string.h>
 int lineno = 1;
+static void comment(void);
+extern void yyerror(const char *);
 %}
 
 %option noyywrap
 
 %%
+"/*"                    { comment();  }
+"//".*                  { }
+
 "auto"					{ return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
@@ -60,8 +65,6 @@ int lineno = 1;
 [0-9]+\.[0-9]+          { yylval.fval = atof(yytext); return F_CONST; }
 
 "#"[a-zA-Z]+.*          { return PREPROCESSOR; }
-"//".*                  { return COMMENT; }
-"/\\*".*?"\\*/"         { return COMMENT; }
 
 ((u8|u|U|L)?\"([^"\\\n]|(\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+)))*\"[ \t\v\n\f]*)+         { yylval.str = strdup(yytext); return STRING; }
 \'(\\.|[^'])\'          { return CHARACTER; }
@@ -120,3 +123,21 @@ int lineno = 1;
 
 %%
 
+static void comment(void)
+{
+    int c;
+
+    while ((c = input()) != 0)
+        if (c == '*')
+        {
+            while ((c = input()) == '*')
+                ;
+
+            if (c == '/')
+                return;
+
+            if (c == 0)
+                break;
+        }
+    yyerror("unterminated comment");
+}
