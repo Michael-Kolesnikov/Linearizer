@@ -445,6 +445,16 @@ Node* create_labeled_statement_node(Node* identifier, Node* statement){
     node->base.print = print_labeled_statement_node;
     return (Node*)node; 
 }
+
+Node* create_wrapper_node(Node* wrapper, Node* inner_node){
+    WrapperNode* node = (WrapperNode*)malloc(sizeof(WrapperNode));
+    node->base.type = WRAPPER_NODE;
+    node->base.print = print_wrapper_node;
+    node->wrapper = wrapper;
+    node->inner_node = inner_node;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -980,7 +990,7 @@ void print_value_node(Node* node){
     printf(COLOR_BLUE "Value Node: " COLOR_RESET "\n");
     indent_level++;
     print_indent();
-    printf("value: " COLOR_GREEN "%s" COLOR_RESET "\n", val_node->value);
+    printf("Value: " COLOR_GREEN "%s" COLOR_RESET "\n", val_node->value);
     indent_level--;
 }
 
@@ -1117,6 +1127,24 @@ void print_labeled_statement_node(Node* node){
     printf("Label statement: \n");
     indent_level++;
     lbl_node->statement->print(lbl_node->statement);
+    indent_level--;
+    indent_level--;
+}
+
+void print_wrapper_node(Node* node){
+    WrapperNode* wrap_node = (WrapperNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Wrapper Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Wrapper: \n");
+    indent_level++;
+    wrap_node->wrapper->print(wrap_node->wrapper);
+    indent_level--;
+    print_indent();
+    printf("Inner expression: \n");
+    indent_level++;
+    wrap_node->inner_node->print(wrap_node->inner_node);
     indent_level--;
     indent_level--;
 }

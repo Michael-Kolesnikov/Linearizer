@@ -45,6 +45,7 @@ typedef enum NodeType {
     STRUCT_DECLARATIONS_LIST_NODE,
     CAST_EXPRESSION_NODE,
     LABELED_STATEMENT_NODE,
+    WRAPPER_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -314,6 +315,12 @@ typedef struct {
     Node* identifier;
     Node* statement;
 } LabeledStatementNode;
+
+typedef struct {
+    Node base;
+    Node* wrapper;
+    Node* inner_node;
+} WrapperNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -359,6 +366,7 @@ Node* create_struct_declarator_node(Node* declarator, Node* bit_width);
 Node* create_struct_declarations_list_node(Node** declarations, int count);
 Node* create_cast_expression_node(Node* type, Node* expression);
 Node* create_labeled_statement_node(Node* identifier, Node* statement);
+Node* create_wrapper_node(Node* wrapper, Node* inner_node);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -403,4 +411,5 @@ void print_struct_declarator_node(Node* node);
 void print_struct_declarations_list_node(Node* node);
 void print_cast_expression_node(Node* node);
 void print_labeled_statement_node(Node* node);
+void print_wrapper_node(Node* node);
 #endif // AST_H

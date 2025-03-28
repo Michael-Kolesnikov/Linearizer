@@ -23,13 +23,12 @@
 %token	XOR_ASSIGN OR_ASSIGN
 %token	ENUMERATION_CONSTANT
 
-%token	TYPEDEF EXTERN STATIC AUTO REGISTER INLINE
-%token	CONST RESTRICT VOLATILE
+%token	INLINE
 %token	ENUM ELLIPSIS
 
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%token	ALIGNAS ALIGNOF ATOMIC GENERIC NORETURN STATIC_ASSERT THREAD_LOCAL
+%token	ALIGNAS ALIGNOF GENERIC NORETURN STATIC_ASSERT
 %token COMMENT CHARACTER PREPROCESSOR
 %start program
 %union{
@@ -43,6 +42,7 @@
     } pair_node;
 }
 %token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME STRING STRUCT UNION
+%token <str> TYPEDEF EXTERN STATIC THREAD_LOCAL AUTO REGISTER CONST RESTRICT ATOMIC VOLATILE
 %token <fval> F_CONST
 %token <ival> I_CONST
 %type <str> assignment_operator declaration_specifiers unary_operator
@@ -53,7 +53,8 @@
 %type <node> init_declarator init_declarator_list declaration
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
 %type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
-%type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration
+%type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration storage_class_specifier
+%type <node> type_qualifier
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -231,12 +232,12 @@ declaration
     ;
 
 declaration_specifiers
-	: storage_class_specifier declaration_specifiers
-	| storage_class_specifier
-    | type_specifiers declaration_specifiers
+	: storage_class_specifier declaration_specifiers { $$ = create_wrapper_node($1,$2); }
+	| storage_class_specifier { $$ = $1; }
+    | type_specifiers declaration_specifiers { $$ = create_wrapper_node($1, $2); }
     | type_specifiers { $$ = $1; }
-	| type_qualifier declaration_specifiers
-	| type_qualifier
+	| type_qualifier declaration_specifiers { $$ = create_wrapper_node($1, $2); }
+	| type_qualifier { $$ = $1; }
     ;
 
 init_declarator_list
@@ -250,12 +251,12 @@ init_declarator
     ;
 
 storage_class_specifier
-	: TYPEDEF
-	| EXTERN
-	| STATIC
-	| THREAD_LOCAL
-	| AUTO
-	| REGISTER
+	: TYPEDEF { $$ = create_value_node($1); }
+	| EXTERN { $$ = create_value_node($1); }
+	| STATIC { $$ = create_value_node($1); }
+	| THREAD_LOCAL { $$ = create_value_node($1); }
+	| AUTO { $$ = create_value_node($1); }
+	| REGISTER { $$ = create_value_node($1); }
 	;
 
 type_specifiers
@@ -349,10 +350,10 @@ enumerator
 	;
 
 type_qualifier
-	: CONST
-	| RESTRICT
-	| VOLATILE
-	| ATOMIC
+	: CONST { $$ = create_value_node($1); }
+	| RESTRICT { $$ = create_value_node($1); }
+	| VOLATILE { $$ = create_value_node($1); }
+	| ATOMIC { $$ = create_value_node($1); }
 	;
 
 declarator
