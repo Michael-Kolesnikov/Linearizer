@@ -14,7 +14,7 @@ extern void yyerror(const char *);
 "/*"                    { comment();  }
 "//".*                  { }
 
-"auto"					{ return(AUTO); }
+"auto"					{ yylval.str = strdup(yytext); return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
 "char"					{ yylval.str = strdup(yytext); return(CHAR); }
@@ -25,21 +25,21 @@ extern void yyerror(const char *);
 "double"				{ yylval.str = strdup(yytext); return(DOUBLE); }
 "else"					{ return(ELSE); }
 "enum"					{ return(ENUM); }
-"extern"				{ return(EXTERN); }
+"extern"				{ yylval.str = strdup(yytext); return(EXTERN); }
 "float"					{ yylval.str = strdup(yytext); return(FLOAT); }
 "for"					{ return(FOR); }
 "goto"					{ return(GOTO); }
 "if"					{ return(IF); }
-"inline"				{ return(INLINE); }
+"inline"				{ yylval.str = strdup(yytext); return(INLINE); }
 "int"					{ yylval.str = strdup(yytext); return(INT); }
 "long"					{ yylval.str = strdup(yytext); return(LONG); }
-"register"				{ return(REGISTER); }
+"register"				{ yylval.str = strdup(yytext); return(REGISTER); }
 "restrict"				{ return(RESTRICT); }
 "return"				{ return(RETURN); }
 "short"					{ yylval.str = strdup(yytext); return(SHORT); }
 "signed"				{ yylval.str = strdup(yytext); return(SIGNED); }
 "sizeof"				{ return(SIZEOF); }
-"static"				{ return(STATIC); }
+"static"				{ yylval.str = strdup(yytext); return(STATIC); }
 "struct"				{ yylval.str = strdup(yytext); return(STRUCT); }
 "switch"				{ return(SWITCH); }
 "typedef"				{ yylval.str = strdup(yytext); return(TYPEDEF); }
@@ -55,9 +55,9 @@ extern void yyerror(const char *);
 "_Complex"              { yylval.str = strdup(yytext); return COMPLEX; }
 "_Generic"              { return GENERIC; }
 "_Imaginary"            { yylval.str = strdup(yytext); return IMAGINARY; }
-"_Noreturn"             { return NORETURN; }
+"_Noreturn"             { yylval.str = strdup(yytext); return NORETURN; }
 "_Static_assert"        { return STATIC_ASSERT; }
-"_Thread_local"         { return THREAD_LOCAL; }
+"_Thread_local"         { yylval.str = strdup(yytext); return THREAD_LOCAL; }
 "__func__"              { return FUNC_NAME; }
 
 [a-zA-Z_][a-zA-Z0-9_]*    { yylval.str = strdup(yytext); return IDENTIFIER; }
