@@ -23,11 +23,6 @@ Node* create_identifier_node(char* name){
         exit(1);
     }
     node->name = strdup(name);
-    if (!node->name) {
-        fprintf(stderr, "Error: Failed to duplicate string\n");
-        free(node);
-        exit(1);
-    }
     node->base.type = IDENTIFIER_NODE;
     node->base.print = print_identifier_node;
     return (Node*)node;
@@ -79,7 +74,6 @@ Node* create_declaration_node(Node* identifier, Node* initializer){
         fprintf(stderr, "Error: Failed to allocate memory for DeclarationNode\n");
         exit(1);
     }
-
     node->base.type = DECLARATION_NODE;
     node->base.print = print_declaration_node;
     node->identifier = identifier;
@@ -94,13 +88,11 @@ Node* create_assignment_node(Node* left, char* op, Node* right){
         fprintf(stderr, "Error: Failed to allocate memory for AssignmentNode\n");
         exit(1);
     }
-
     node->base.type = ASSIGNMENT_NODE;
     node->base.print = print_assignment_node;
     node->left = left;
     node->op = op;
     node->right = right;
-
     return (Node*)node;
 }
 
@@ -114,11 +106,6 @@ Node* create_logical_operation_node(Node* left, char* op, Node* right){
     node->base.print = print_logical_operation_node;
     node->left = left;
     node->op = strdup(op);
-    if (!node->op) {
-        fprintf(stderr, "Error: Failed to duplicate operator string\n");
-        free(node);
-        exit(1);
-    }
     node->right = right;
     return (Node*)node;
 }
@@ -129,12 +116,12 @@ Node* create_if_node(Node* condition, Node* then_statement, Node* else_statement
         fprintf(stderr, "Error: Failed to allocate memory for IfNode\n");
         exit(1);
     }
-    
     node->base.type = IF_NODE;
     node->base.print = print_if_node;
     node->condition = condition;
     node->then_statement = then_statement;
     node->else_statement = else_statement;
+    return (Node*)node;
 }
 
 Node* create_expression_statement_node(Node* expr){
@@ -143,7 +130,6 @@ Node* create_expression_statement_node(Node* expr){
         fprintf(stderr, "Error: Failed to allocate memory for ExpressionStatementNode\n");
         exit(1);
     }
-
     node->base.type = EXPRESSION_STATEMENT_NODE;
     node->base.print = print_expression_statement_node;
     node->expr = expr;
@@ -153,10 +139,9 @@ Node* create_expression_statement_node(Node* expr){
 Node* create_empty_statement_node(){
     EmptyStatementNode* node = (EmptyStatementNode*)malloc(sizeof(EmptyStatementNode));
     if(!node) {
-        fprintf(stderr, "Error: Failed to allocate memory for EmptyStatementNode\n");
+        fprintf(stderr, "Error: Failed to allocate memory for Node\n");
         exit(1);
     }
-
     node->base.type = EMPTY_STATEMENT_NODE;
     node->base.print = print_empty_statement_node;
     return (Node*)node;
@@ -164,7 +149,6 @@ Node* create_empty_statement_node(){
 
 Node* create_compound_statement_node(Node** statement, int count){
     CompoundStatementNode* node = (CompoundStatementNode*)malloc(sizeof(CompoundStatementNode));
-    
     node->statements = statement;
     node->count = count;
     node->base.type = COMPOUND_STATEMENT_NODE;
@@ -179,6 +163,7 @@ Node* create_function_declaration_node(Node* return_type, Node* declarator, Node
     node->declarator = declarator;
     node->return_type = return_type;
     node->body = body;
+    return (Node*)node;
 }
 
 Node* create_string_literal_node(char* value){
@@ -186,6 +171,7 @@ Node* create_string_literal_node(char* value){
     node->base.type = STRING_LITERAL_NODE;
     node->base.print = print_string_literal_node;
     node->value = strdup(value);
+    return (Node*)node;
 }
 
 Node* create_while_node(Node* condition, Node* body){
@@ -194,6 +180,7 @@ Node* create_while_node(Node* condition, Node* body){
     node->base.print = print_while_node;
     node->condition = condition;
     node->body = body;
+    return (Node*)node;
 }
 
 Node* create_do_while_node(Node* do_statement, Node* condition){
@@ -202,6 +189,7 @@ Node* create_do_while_node(Node* do_statement, Node* condition){
     node->base.print = print_do_while_node;
     node->do_statement = do_statement;
     node->condition = condition;
+    return (Node*)node;
 }
 
 Node* create_switch_node(Node* expression, Node* body){
@@ -210,6 +198,7 @@ Node* create_switch_node(Node* expression, Node* body){
     node->base.print = print_switch_node;
     node->expression = expression;
     node->body = body;
+    return (Node*)node;
 }
 
 Node* create_case_node(Node* expression, Node* body){
@@ -218,6 +207,7 @@ Node* create_case_node(Node* expression, Node* body){
     node->base.print = print_case_node;
     node->expression = expression;
     node->body = body;
+    return (Node*)node;
 }
 
 Node* create_default_node(Node* body){
@@ -242,6 +232,7 @@ Node* create_ternary_operator_node(Node* condition, Node* then_statement, Node* 
     node->condition = condition;
     node->then_statement = then_statement;
     node->else_statement = else_statement;
+    return (Node*)node;
 }
 
 Node* create_return_node(Node* expression){
@@ -249,6 +240,7 @@ Node* create_return_node(Node* expression){
     node->base.type = RETURN_NODE;
     node->base.print = print_return_node;
     node->expression = expression;
+    return (Node*)node;
 }
 
 Node* create_goto_node(Node* identifier){
@@ -256,12 +248,14 @@ Node* create_goto_node(Node* identifier){
     node->base.type = GOTO_NODE;
     node->base.print = print_goto_node;
     node->identifier = identifier;
+    return (Node*)node;
 }
 
 Node* create_continue_node(){
     ContinueNode* node = (ContinueNode*)malloc(sizeof(ContinueNode));
     node->base.type = CONTINUE_NODE;
     node->base.print = print_continue_node;
+    return (Node*)node;
 }
 
 Node* create_prefix_increment_node(Node* expression){
@@ -269,6 +263,7 @@ Node* create_prefix_increment_node(Node* expression){
     node->base.type = PREFIX_INCREMENT_NODE;
     node->base.print = print_prefix_increment_node;
     node->expression = expression;
+    return (Node*)node;
 }
 
 Node* create_postfix_increment_node(Node* expression){
@@ -276,6 +271,7 @@ Node* create_postfix_increment_node(Node* expression){
     node->base.type = POSTFIX_INCEMENT_NODE;
     node->base.print = print_postfix_increment_node;
     node->expression = expression;
+    return (Node*)node;
 }
 
 Node* create_prefix_decrement_node(Node* expression){
@@ -283,6 +279,7 @@ Node* create_prefix_decrement_node(Node* expression){
     node->base.type = PREFIX_DECREMENT_NODE;
     node->base.print = print_prefix_decrement_node;
     node->expression = expression;
+    return (Node*)node;
 }
 
 Node* create_postfix_decrement_node(Node* expression){
@@ -290,6 +287,7 @@ Node* create_postfix_decrement_node(Node* expression){
     node->base.type = POSTFIX_DECREMENT_NODE;
     node->base.print = print_postfix_decrement_node;
     node->expression = expression;
+    return (Node*)node;
 }
 
 Node* create_unary_operator_expression_node(char* unary_operator, Node* expression){
@@ -298,6 +296,7 @@ Node* create_unary_operator_expression_node(char* unary_operator, Node* expressi
     node->base.print = print_unary_operator_expression_node;
     node->unary_operator = strdup(unary_operator);
     node->expression = expression;
+    return (Node*)node;
 }
 
 Node* create_pointer_node(Node* declarator){
@@ -305,11 +304,11 @@ Node* create_pointer_node(Node* declarator){
     node->base.type = POINTER_NODE;
     node->base.print = print_pointer_node;
     node->declarator = declarator;
+    return (Node*)node;
 }
 
 Node* create_parameters_node(Node** parameters, int count){
     ParametersNode* node = (ParametersNode*)malloc(sizeof(ParametersNode));
-    
     node->parameters = parameters;
     node->count = count;
     node->base.type = PARAMETERS_NODE;
@@ -334,6 +333,7 @@ Node* create_for_node(Node* initialization, Node* condition, Node* update, Node*
     node->condition = condition;
     node->update = update;
     node->body = body;
+    return (Node*)node;
 }
 
 Node* create_arguments_node(Node** arguments, int count){
@@ -386,19 +386,23 @@ Node* create_value_node(char* value){
     node->base.print = print_value_node;
     return (Node*)node;
 }
+
 Node* create_member_access_expression_node(Node* object_expression, Node* field_name){
     MemberAccessExpressionNode* node = (MemberAccessExpressionNode*)malloc(sizeof(MemberAccessExpressionNode));
     node->base.type = MEMBER_ACCESS_EXPRESSION_NODE;
     node->base.print = print_member_access_expression_node;
     node->object_expression = object_expression;
     node->field_name = field_name;
+    return (Node*)node;
 }
+
 Node* create_pointer__member_access_expression_node(Node* pointer_expression, Node* field_name){
     PointerMemberAccessExpressionNode* node = (PointerMemberAccessExpressionNode*)malloc(sizeof(PointerMemberAccessExpressionNode));
     node->base.type = POINTER_MEMBER_ACCESS_EXPRESSION_NODE;
     node->base.print = print_pointer_member_access_expression_node;
     node->pointer_expression = pointer_expression;
     node->field_name = field_name;
+    return (Node*)node;
 }
 
 Node* create_structunion_node(Node* kind, Node* identifier, Node* body){
@@ -410,6 +414,7 @@ Node* create_structunion_node(Node* kind, Node* identifier, Node* body){
     node->base.type = STRUCTUNION_NODE;
     return (Node*)node;
 }
+
 Node* create_struct_declarator_node(Node* declarator, Node* bit_width){
     StructDeclaratorNode* node = (StructDeclaratorNode*)malloc(sizeof(StructDeclaratorNode));
     node->declarator = declarator;
@@ -421,7 +426,6 @@ Node* create_struct_declarator_node(Node* declarator, Node* bit_width){
 
 Node* create_struct_declarations_list_node(Node** declarations, int count){
     StructDeclarationsListNode* node = (StructDeclarationsListNode*)malloc(sizeof(StructDeclarationsListNode));
-    
     node->declarations_list = declarations;
     node->count = count;
     node->base.type = STRUCT_DECLARATIONS_LIST_NODE;
@@ -435,6 +439,7 @@ Node* create_cast_expression_node(Node* type, Node* expression){
     node->expression = expression;
     node->base.type = CAST_EXPRESSION_NODE;
     node->base.print = print_cast_expression_node;
+    return (Node*)node;
 }
 
 Node* create_labeled_statement_node(Node* identifier, Node* statement){
