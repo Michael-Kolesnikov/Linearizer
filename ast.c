@@ -485,7 +485,7 @@ void print_binary_operation_node(Node* node){
     indent_level++;
     if(bin_node->left != NULL){
     print_indent();
-        printf("Left:\n", bin_node->op);
+        printf("Left:\n");
         indent_level++;
         bin_node->left->print(bin_node->left);
         indent_level--;
@@ -493,7 +493,7 @@ void print_binary_operation_node(Node* node){
 
     if(bin_node->right != NULL){
         print_indent();
-        printf("Right:\n", bin_node->op);
+        printf("Right:\n");
         indent_level++;
         bin_node->right->print(bin_node->right);
         indent_level--;
@@ -790,7 +790,7 @@ void print_continue_node(Node* node){
 }
 
 void print_prefix_increment_node(Node* node){
-    PrefixIncrement* incr_node = (PrefixDecrement*)node;
+    PrefixIncrement* incr_node = (PrefixIncrement*)node;
     print_indent();
     printf(COLOR_BLUE "Prefix increment Node: " COLOR_RESET "\n");
     indent_level++;

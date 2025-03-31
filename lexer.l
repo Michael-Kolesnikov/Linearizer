@@ -58,7 +58,7 @@ extern void yyerror(const char *);
 "_Noreturn"             { yylval.str = strdup(yytext); return NORETURN; }
 "_Static_assert"        { return STATIC_ASSERT; }
 "_Thread_local"         { yylval.str = strdup(yytext); return THREAD_LOCAL; }
-"__func__"              { return FUNC_NAME; }
+"__func__"              { yylval.str = strdup(yytext); return FUNC_NAME; }
 
 [a-zA-Z_][a-zA-Z0-9_]*    { yylval.str = strdup(yytext); return IDENTIFIER; }
 "0"|[0-9]+              { yylval.ival = atoi(yytext); return I_CONST; }

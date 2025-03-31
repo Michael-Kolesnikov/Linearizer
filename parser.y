@@ -16,7 +16,7 @@
 	Node* root;
 %}
 
-%token	FUNC_NAME SIZEOF
+%token	SIZEOF
 %token	POINTER_OP INCR_OP DECR_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -38,10 +38,10 @@
     } pair_node;
 }
 %token <str> IDENTIFIER INT VOID CHAR SHORT COMPLEX IMAGINARY BOOL LONG SIGNED UNSIGNED FLOAT DOUBLE TYPEDEF_NAME STRING STRUCT UNION
-%token <str> TYPEDEF EXTERN STATIC THREAD_LOCAL AUTO REGISTER CONST RESTRICT ATOMIC VOLATILE INLINE NORETURN
+%token <str> TYPEDEF EXTERN STATIC THREAD_LOCAL AUTO REGISTER CONST RESTRICT ATOMIC VOLATILE INLINE NORETURN FUNC_NAME
 %token <fval> F_CONST
 %token <ival> I_CONST
-%type <str> assignment_operator declaration_specifiers unary_operator
+%type <str> assignment_operator unary_operator
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
 %type <node> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression conditional_expression assignment_expression
@@ -50,7 +50,7 @@
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
 %type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
 %type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration storage_class_specifier
-%type <node> type_qualifier function_specifier
+%type <node> type_qualifier function_specifier declaration_specifiers enum_specifier
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -70,7 +70,7 @@ enumeration_constant
 
 string
 	: STRING { $$ = create_string_literal_node($1); }
-	| FUNC_NAME
+	| FUNC_NAME { $$ = create_value_node($1); }
 	;
 
 postfix_expression
@@ -271,6 +271,7 @@ type_specifiers
 	| COMPLEX { $$ = create_value_node($1); }
 	| IMAGINARY { $$ = create_value_node($1);}
 	| struct_or_union_specifier { $$ = $1; }
+	| enum_specifier
 	| TYPEDEF_NAME { $$ = create_value_node($1);}	
     ;
 
@@ -510,7 +511,7 @@ statement
     ;
 
 labeled_statement
-	: IDENTIFIER ':' statement { $$ = create_labeled_statement_node($1,$3); }
+	: IDENTIFIER ':' statement { $$ = create_labeled_statement_node(create_identifier_node($1),$3); }
 	| CASE constant_expression ':' statement { $$ = create_case_node($2, $4); }
 	| DEFAULT ':' statement { $$ = create_default_node($3); }
 	;
