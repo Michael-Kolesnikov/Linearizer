@@ -460,6 +460,24 @@ Node* create_wrapper_node(Node* wrapper, Node* inner_node){
     return (Node*)node;
 }
 
+Node* create_enum_node(Node* identifier, Node* enumerators_list){
+    EnumNode* node = (EnumNode*)malloc(sizeof(EnumNode));
+    node->base.type = ENUM_NODE;
+    node->base.print = print_enum_node;
+    node->identifier = identifier;
+    node->enumerators_list = enumerators_list;
+    return (Node*)node;
+}
+
+Node* create_enumerators_list_node(Node** enumerators_list, int count){
+    EnumeratorsListNode* node = (EnumeratorsListNode*)malloc(sizeof(EnumeratorsListNode));
+    node->base.type = ENUMERATORS_LIST_NODE;
+    node->base.print = print_enumerators_list_node;
+    node->enumerators_list = enumerators_list;
+    node->count = count;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -1151,5 +1169,38 @@ void print_wrapper_node(Node* node){
     indent_level++;
     wrap_node->inner_node->print(wrap_node->inner_node);
     indent_level--;
+    indent_level--;
+}
+
+void print_enum_node(Node* node){
+    EnumNode* enum_node = (EnumNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Enum Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Enum identifier: \n");
+    indent_level++;
+    enum_node->identifier->print(enum_node->identifier);
+    indent_level--;
+    print_indent();
+    printf("Enumerators list: \n");
+    indent_level++;
+    enum_node->enumerators_list->print(enum_node->enumerators_list);
+    indent_level--;
+    indent_level--;
+}
+
+void print_enumerators_list_node(Node* node){
+    EnumeratorsListNode* list_node = (EnumeratorsListNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Enumerators list Node, count: %d" COLOR_RESET "\n",list_node->count);
+    indent_level++;
+    for(int i = 0; i < list_node->count; i++){
+        print_indent();
+        printf("enumerators[%d]: \n",i);
+        indent_level++;
+        list_node->enumerators_list[i]->print(list_node->enumerators_list[i]);
+        indent_level--;
+    }
     indent_level--;
 }

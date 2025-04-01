@@ -50,7 +50,7 @@
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
 %type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
 %type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration storage_class_specifier
-%type <node> type_qualifier function_specifier declaration_specifiers enum_specifier
+%type <node> type_qualifier function_specifier declaration_specifiers enum_specifier enumeration_constant enumerator enumerator_list
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -65,7 +65,7 @@ constant
 	;
 
 enumeration_constant
-	: IDENTIFIER
+	: IDENTIFIER { $$ = create_identifier_node($1); }
 	;
 
 string
@@ -331,21 +331,34 @@ struct_declarator
 	;
 
 enum_specifier
-	: ENUM '{' enumerator_list '}'
-	| ENUM '{' enumerator_list ',' '}'
-	| ENUM IDENTIFIER '{' enumerator_list '}'
-	| ENUM IDENTIFIER '{' enumerator_list ',' '}'
-	| ENUM IDENTIFIER
+	: ENUM '{' enumerator_list '}' { $$ = create_enum_node(create_empty_statement_node(), $3); }
+	| ENUM '{' enumerator_list ',' '}' { $$ = create_enum_node(create_empty_statement_node(), $3); }
+	| ENUM IDENTIFIER '{' enumerator_list '}' { $$ = create_enum_node(create_identifier_node($2), $4);}
+	| ENUM IDENTIFIER '{' enumerator_list ',' '}' { $$ = create_enum_node(create_identifier_node($2), $4);}
+	| ENUM IDENTIFIER { $$ = create_enum_node(create_identifier_node($2), create_empty_statement_node());}
 	;
 
 enumerator_list
-	: enumerator
-	| enumerator_list ',' enumerator
+	: enumerator {
+		Node** enumerators = (Node**)malloc(1 * sizeof(Node*));
+		enumerators[0] = $1;
+		$$ = create_enumerators_list_node(enumerators,1);
+	}
+	| enumerator_list ',' enumerator {
+		EnumeratorsListNode* prev_node = (EnumeratorsListNode*)$1;
+		Node** new_enumerators_list = (Node**)realloc(prev_node->enumerators_list, (prev_node->count + 1) * sizeof(Node*));
+		new_enumerators_list[prev_node->count] = $3;
+        
+        prev_node->enumerators_list = new_enumerators_list;
+        prev_node->count++;
+        
+        $$ = $1;
+	}
 	;
 
 enumerator
-	: enumeration_constant '=' constant_expression
-	| enumeration_constant
+	: enumeration_constant '=' constant_expression { $$ = create_assignment_node($1,"=",$3); }
+	| enumeration_constant { $$ = $1; }
 	;
 
 type_qualifier
