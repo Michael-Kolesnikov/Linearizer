@@ -384,6 +384,7 @@ Node* create_value_node(char* value){
     ValueNode* node = (ValueNode*)malloc(sizeof(ValueNode));
     node->value = strdup(value);
     node->base.print = print_value_node;
+    node->base.type = VALUE_NODE;
     return (Node*)node;
 }
 
