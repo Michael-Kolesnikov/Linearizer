@@ -2,6 +2,7 @@
 CC = gcc
 CFLAGS = -I. -g
 LDFLAGS = -lfl
+TEST_CFLAGS = $(CFLAGS) -Iinclude -lcheck -lm -lsubunit
 
 # Define the output executable name
 TARGET = parser
@@ -18,6 +19,12 @@ BISON_H = parser.tab.h
 FLEX_C = lex.yy.c
 AST_O = ast.o
 CODEGEN_O = codegeneration.o
+
+# Test source files
+TEST_DIR = tests
+TEST_FUNC_DECL = $(TEST_DIR)/function_declaration_test.c
+TEST_MAIN = $(TEST_DIR)/test_main.c
+TEST_OBJ = $(TEST_FUNC_DECL:.c=.o) $(TEST_MAIN:.c=.o)
 
 # The default target
 all: $(TARGET)
@@ -42,9 +49,22 @@ $(AST_O): $(AST_FILE)
 $(CODEGEN_O): $(CODEGEN_FILE)
 	$(CC) $(CFLAGS) -c $(CODEGEN_FILE) -o $(CODEGEN_O)
 
+# Rule to build unit tests
+unit_tests: $(TEST_OBJ) $(AST_O) $(CODEGEN_O)
+	$(CC) -o $(TEST_DIR)/unit_tests $(TEST_OBJ) $(AST_O) $(CODEGEN_O) $(TEST_CFLAGS)
+	./$(TEST_DIR)/unit_tests
+
+# Rule to compile test source files into object files
+$(TEST_DIR)/%.o: $(TEST_DIR)/%.c
+	$(CC) $(TEST_CFLAGS) -c $< -o $@
+
+# Rule to run all tests
+test: unit_tests
+
 # Rule to clean up generated files
 clean:
-	rm -f $(TARGET) $(BISON_C) $(BISON_H) $(FLEX_C) $(AST_O) $(CODEGEN_O)
+	rm -f $(TARGET) $(BISON_C) $(BISON_H) $(FLEX_C) $(AST_O) $(CODEGEN_O) \
+	      $(TEST_DIR)/unit_tests $(TEST_DIR)/*.o
 
 # Rule to run the program
 run: $(TARGET)
