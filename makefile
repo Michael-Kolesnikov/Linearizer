@@ -31,8 +31,14 @@ TEST_FUNC_DECL = $(TEST_DIR)/function_declaration_test.c
 TEST_MAIN = $(TEST_DIR)/test_main.c
 TEST_OBJ = $(TEST_FUNC_DECL:.c=.o) $(TEST_MAIN:.c=.o)
 
+
+DIRS = $(BIN_DIR) $(BUILD_DIR)
+
+$(DIRS):
+	mkdir -p $@
+
 # The default target
-all: $(TARGET)
+all: $(DIRS) $(TARGET)
 
 # Rule to build the final executable
 $(TARGET): $(BISON_C) $(FLEX_C) $(AST_O) $(CODEGEN_O)
