@@ -1,27 +1,32 @@
 # Define the compiler and flags
 CC = gcc
-CFLAGS = -I. -g
+CFLAGS = -I. -Isrc -g
 LDFLAGS = -lfl
 TEST_CFLAGS = $(CFLAGS) -Iinclude -lcheck -lm -lsubunit
 
+# Define source directories
+SRC_DIR = src
+BIN_DIR = bin
+BUILD_DIR = build
+TEST_DIR = tests
+
 # Define the output executable name
-TARGET = parser
+TARGET = $(BIN_DIR)/parser
 
 # Define source files
-BISON_FILE = parser.y
-FLEX_FILE = lexer.l
-AST_FILE = ast.c
-CODEGEN_FILE = codegeneration.c
+BISON_FILE = $(SRC_DIR)/parser.y
+FLEX_FILE = $(SRC_DIR)/lexer.l
+AST_FILE = $(SRC_DIR)/ast.c
+CODEGEN_FILE = $(SRC_DIR)/codegeneration.c
 
 # Generated files
-BISON_C = parser.tab.c
-BISON_H = parser.tab.h
-FLEX_C = lex.yy.c
-AST_O = ast.o
-CODEGEN_O = codegeneration.o
+BISON_C = $(BUILD_DIR)/parser.tab.c
+BISON_H = $(BUILD_DIR)/parser.tab.h
+FLEX_C = $(BUILD_DIR)/lex.yy.c
+AST_O = $(BUILD_DIR)/ast.o
+CODEGEN_O = $(BUILD_DIR)/codegeneration.o
 
 # Test source files
-TEST_DIR = tests
 TEST_FUNC_DECL = $(TEST_DIR)/function_declaration_test.c
 TEST_MAIN = $(TEST_DIR)/test_main.c
 TEST_OBJ = $(TEST_FUNC_DECL:.c=.o) $(TEST_MAIN:.c=.o)
@@ -31,15 +36,15 @@ all: $(TARGET)
 
 # Rule to build the final executable
 $(TARGET): $(BISON_C) $(FLEX_C) $(AST_O) $(CODEGEN_O)
-	$(CC) -o $@ $(BISON_C) $(FLEX_C) $(AST_O) $(CODEGEN_O) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $(BISON_C) $(FLEX_C) $(AST_O) $(CODEGEN_O) $(LDFLAGS)
 
 # Rule to generate Bison files
 $(BISON_C) $(BISON_H): $(BISON_FILE)
-	bison -d $(BISON_FILE)
+	bison -d $(BISON_FILE) --output-file=$(BISON_C) --defines=$(BISON_H)
 
 # Rule to generate Flex files
 $(FLEX_C): $(FLEX_FILE) $(BISON_H)
-	flex $(FLEX_FILE)
+	flex --outfile=$(FLEX_C) $(FLEX_FILE)
 
 # Rule to compile ast.c into ast.o
 $(AST_O): $(AST_FILE)
@@ -68,4 +73,4 @@ clean:
 
 # Rule to run the program
 run: $(TARGET)
-	./$(TARGET) input.c output.c
+	./$(TARGET) $(BUILD_DIR)/input.c $(BUILD_DIR)/output.c
