@@ -18,6 +18,7 @@ BISON_FILE = $(SRC_DIR)/parser.y
 FLEX_FILE = $(SRC_DIR)/lexer.l
 AST_FILE = $(SRC_DIR)/ast.c
 CODEGEN_FILE = $(SRC_DIR)/codegeneration.c
+SYMTAB_FILE = $(SRC_DIR)/symbolTable.c
 
 # Generated files
 BISON_C = $(BUILD_DIR)/parser.tab.c
@@ -25,7 +26,7 @@ BISON_H = $(BUILD_DIR)/parser.tab.h
 FLEX_C = $(BUILD_DIR)/lex.yy.c
 AST_O = $(BUILD_DIR)/ast.o
 CODEGEN_O = $(BUILD_DIR)/codegeneration.o
-
+SYMTAB_O = $(BUILD_DIR)/symbolTable.o
 # Test source files
 TEST_FUNC_DECL = $(TEST_DIR)/function_declaration_test.c
 TEST_MAIN = $(TEST_DIR)/test_main.c
@@ -41,8 +42,8 @@ $(DIRS):
 all: $(DIRS) $(TARGET)
 
 # Rule to build the final executable
-$(TARGET): $(BISON_C) $(FLEX_C) $(AST_O) $(CODEGEN_O)
-	$(CC) $(CFLAGS) -o $@ $(BISON_C) $(FLEX_C) $(AST_O) $(CODEGEN_O) $(LDFLAGS)
+$(TARGET): $(BISON_C) $(FLEX_C) $(AST_O) $(CODEGEN_O) $(SYMTAB_O)
+	$(CC) $(CFLAGS) -o $@ $(BISON_C) $(FLEX_C) $(AST_O) $(CODEGEN_O) $(SYMTAB_O) $(LDFLAGS)
 
 # Rule to generate Bison files
 $(BISON_C) $(BISON_H): $(BISON_FILE)
@@ -60,6 +61,9 @@ $(AST_O): $(AST_FILE)
 $(CODEGEN_O): $(CODEGEN_FILE)
 	$(CC) $(CFLAGS) -c $(CODEGEN_FILE) -o $(CODEGEN_O)
 
+$(SYMTAB_O): $(SYMTAB_FILE)
+	$(CC) $(CFLAGS) -c $(SYMTAB_FILE) -o $(SYMTAB_O)
+
 # Rule to build unit tests
 unit_tests: $(TEST_OBJ) $(AST_O) $(CODEGEN_O)
 	$(CC) -o $(TEST_DIR)/unit_tests $(TEST_OBJ) $(AST_O) $(CODEGEN_O) $(TEST_CFLAGS)
@@ -74,7 +78,7 @@ test: unit_tests
 
 # Rule to clean up generated files
 clean:
-	rm -f $(TARGET) $(BISON_C) $(BISON_H) $(FLEX_C) $(AST_O) $(CODEGEN_O) \
+	rm -f $(TARGET) $(BISON_C) $(BISON_H) $(FLEX_C) $(AST_O) $(CODEGEN_O) $(SYMTAB_O)\
 	      $(TEST_DIR)/unit_tests $(TEST_DIR)/*.o
 
 # Rule to run the program

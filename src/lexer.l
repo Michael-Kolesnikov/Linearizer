@@ -1,4 +1,5 @@
 %{
+#include "symbolTable.h"
 #include "ast.h"
 #include "parser.tab.h"
 #include <stdio.h>
@@ -6,10 +7,18 @@
 int lineno = 1;
 static void comment(void);
 extern void yyerror(const char *);
+int in_typedef = 0;
+int brace_level = 0;
+int waiting_for_typedef_names = 0;
+
+int is_typedef_name(const char *name) {
+    Symbol *s = symtab_lookup(name);
+    return s && s->type == SYM_TYPEDEF;
+}
+
 %}
 
 %option noyywrap
-
 %%
 "/*"                    { comment();  }
 "//".*                  { }
@@ -42,7 +51,13 @@ extern void yyerror(const char *);
 "static"				{ yylval.str = strdup(yytext); return(STATIC); }
 "struct"				{ yylval.str = strdup(yytext); return(STRUCT); }
 "switch"				{ return(SWITCH); }
-"typedef"				{ yylval.str = strdup(yytext); return(TYPEDEF); }
+"typedef" { 
+    in_typedef = 1;
+    brace_level = 0;
+    waiting_for_typedef_names = 0;
+    yylval.str = strdup(yytext);
+    return(TYPEDEF);
+}
 "union"					{ yylval.str = strdup(yytext); return(UNION); }
 "unsigned"				{ yylval.str = strdup(yytext); return(UNSIGNED); }
 "void"					{ yylval.str = strdup(yytext); return(VOID); }
@@ -60,7 +75,19 @@ extern void yyerror(const char *);
 "_Thread_local"         { yylval.str = strdup(yytext); return THREAD_LOCAL; }
 "__func__"              { yylval.str = strdup(yytext); return FUNC_NAME; }
 
-[a-zA-Z_][a-zA-Z0-9_]*    { yylval.str = strdup(yytext); return IDENTIFIER; }
+[a-zA-Z_][a-zA-Z0-9_]*    {
+    yylval.str = strdup(yytext);
+    if (in_typedef && (waiting_for_typedef_names || brace_level == 0)) {
+        symtab_add(yytext, SYM_TYPEDEF, NULL);
+        return TYPEDEF_NAME;
+    }
+
+    if (is_typedef_name(yytext)) {
+        return TYPEDEF_NAME;
+    }
+    symtab_add(yytext, SYM_IDENTIFIER, NULL);
+    return IDENTIFIER;
+}
 "0"|[0-9]+              { yylval.ival = atoi(yytext); return I_CONST; }
 [0-9]+\.[0-9]+          { yylval.fval = atof(yytext); return F_CONST; }
 
@@ -92,9 +119,24 @@ extern void yyerror(const char *);
 "=="					{ return EQ_OP; }
 "!="					{ return NE_OP; }
 
-";"                     { return(';'); }
-("{"|"<%")              { return('{'); }
-("}"|"%>")              { return('}'); }
+";" { 
+    waiting_for_typedef_names = 0;
+    in_typedef = 0;
+    return(';');
+}
+("{"|"<%") { 
+    if (in_typedef) brace_level++;
+    return('{');
+}
+("}"|"%>") {
+    if (in_typedef) {
+        brace_level--;
+        if (brace_level == 0) {
+            waiting_for_typedef_names = 1;
+        }
+    }
+    return('}');
+}
 ","                     { return(','); }
 ":"                     { return(':'); }
 "="                     { return('='); }
