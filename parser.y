@@ -271,7 +271,7 @@ type_specifiers
 	| COMPLEX { $$ = create_value_node($1); }
 	| IMAGINARY { $$ = create_value_node($1);}
 	| struct_or_union_specifier { $$ = $1; }
-	| enum_specifier
+	| enum_specifier { $$ = $1; }
 	| TYPEDEF_NAME { $$ = create_value_node($1);}	
     ;
 
@@ -303,7 +303,7 @@ struct_declaration_list
 	;
 
 struct_declaration
-	: specifier_qualifier_list ';'
+	: specifier_qualifier_list ';' { $$ = $1; }
 	| specifier_qualifier_list struct_declarator_list ';' {
 		StructDeclaratorNode* node = (StructDeclaratorNode*)$2;
 		node->type = $1;
@@ -313,10 +313,10 @@ struct_declaration
 	;
 
 specifier_qualifier_list
-	: type_specifiers specifier_qualifier_list
+	: type_specifiers specifier_qualifier_list { $$ = create_wrapper_node($1, $2); }
 	| type_specifiers { $$ = $1; }
-	| type_qualifier specifier_qualifier_list
-	| type_qualifier
+	| type_qualifier specifier_qualifier_list { $$ = create_wrapper_node($1, $2); }
+	| type_qualifier { $$ = $1; }
 	;
 
 struct_declarator_list
@@ -640,7 +640,7 @@ int main(int argc, char *argv[]){
 		printf("ROOT IS NULL\n");
 	}else{
     	root->print(root);
-		/* generate_code_from_ast(root,yyout); */
+		generate_code_from_ast(root,yyout);
 	}
 	fclose(yyin);
     fclose(yyout);
