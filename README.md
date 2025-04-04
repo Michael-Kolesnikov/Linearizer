@@ -7,17 +7,23 @@
 - Поддержка базовых управляющих конструкций.
 
 ## Установка
-
-### Требования
-Для сборки и работы требуется установить **Flex** и **Bison**.  
-На Ubuntu/Debian:  
+### Клонирование репозитория
 ```sh
-sudo apt install flex bison
 git clone https://github.com/Michael-Kolesnikov/Linearizer.git
 cd Linearizer
-make run
+```
+### Установка зависимостей
+На Ubuntu/Debian:  
+```sh
+sudo apt-get update
+sudo apt-get install -y build-essential flex bison check libsubunit-dev
 ```
 
+### Сборка проекта
+```sh
+make all
+make run
+```
 Пример использования:
 Исходный код — input.c 
 ```C
