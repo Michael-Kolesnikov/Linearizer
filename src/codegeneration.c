@@ -89,6 +89,12 @@ void generate_code(Node* node){
             current_context = CONTEXT_DEFAULT;
             break;
         }
+        case UNARY_OPERATOR_EXPRESSION_NODE: {
+            UnaryOperatorExpressonNode* unary_node = (UnaryOperatorExpressonNode*)node;
+            fprintf(output_file, "%s", unary_node->unary_operator);
+            generate_code(unary_node->expression);
+            break;
+        }
         case FUNCTION_CALL_NODE: {
             FunctionCallNode* func_call_node = (FunctionCallNode*)node;
             generate_code(func_call_node->name);
