@@ -89,6 +89,24 @@ void generate_code(Node* node){
             current_context = CONTEXT_DEFAULT;
             break;
         }
+        case FUNCTION_CALL_NODE: {
+            FunctionCallNode* func_call_node = (FunctionCallNode*)node;
+            generate_code(func_call_node->name);
+            fprintf(output_file,"(");
+            generate_code(func_call_node->arguments);
+            fprintf(output_file,")");
+            break;
+        }
+        case ARGUMENTS_NODE: {
+            ArgumentsNode* arguments = (ArgumentsNode*)node;
+            for(int i = 0 ; i < arguments->count; i++){
+                generate_code(arguments->arguments[i]);
+                if(arguments->count != 1 && i != arguments->count - 1){
+                    fprintf(output_file,", ");
+                }
+            }
+            break;
+        }
         case ASSIGNMENT_NODE: {
             AssignmentNode* assignment_node = (AssignmentNode*)node;
             generate_code(assignment_node->left);

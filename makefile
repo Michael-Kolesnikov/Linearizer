@@ -29,8 +29,9 @@ CODEGEN_O = $(BUILD_DIR)/codegeneration.o
 SYMTAB_O = $(BUILD_DIR)/symbolTable.o
 # Test source files
 TEST_FUNC_DECL = $(TEST_DIR)/function_declaration_test.c
+TEST_FUNC_CALL = $(TEST_DIR)/function_call_test.c
 TEST_MAIN = $(TEST_DIR)/test_main.c
-TEST_OBJ = $(TEST_FUNC_DECL:.c=.o) $(TEST_MAIN:.c=.o)
+TEST_OBJ = $(TEST_FUNC_CALL:.c=.o) $(TEST_FUNC_DECL:.c=.o) $(TEST_MAIN:.c=.o)
 
 
 DIRS = $(BIN_DIR) $(BUILD_DIR)
