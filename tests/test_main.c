@@ -4,6 +4,7 @@
 Suite* codegen_test_function_declaration(void);
 Suite* codegen_test_function_call(void);
 Suite* codegen_test_unary_operator(void);
+Suite* codegen_test_array_declaration(void);
 
 char* read_file_to_string(FILE* file) {
     fseek(file, 0, SEEK_END);
@@ -26,6 +27,7 @@ int main(void) {
     srunner_add_suite(sr, codegen_test_function_declaration());
     srunner_add_suite(sr, codegen_test_function_call());
     srunner_add_suite(sr, codegen_test_unary_operator());
+    srunner_add_suite(sr, codegen_test_array_declaration());
     srunner_run_all(sr, CK_NORMAL);
     int failed = srunner_ntests_failed(sr);
     srunner_free(sr);

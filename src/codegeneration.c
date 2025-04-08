@@ -89,6 +89,14 @@ void generate_code(Node* node){
             current_context = CONTEXT_DEFAULT;
             break;
         }
+        case ARRAY_DECLARATION_NODE: {
+            ArrayDeclarationNode* array_node = (ArrayDeclarationNode*)node;
+            generate_code(array_node->declarator);
+            fprintf(output_file,"[");
+            generate_code(array_node->index_expression);
+            fprintf(output_file,"]");
+            break;
+        }
         case UNARY_OPERATOR_EXPRESSION_NODE: {
             UnaryOperatorExpressonNode* unary_node = (UnaryOperatorExpressonNode*)node;
             fprintf(output_file, "%s", unary_node->unary_operator);
