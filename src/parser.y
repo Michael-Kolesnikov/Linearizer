@@ -50,7 +50,8 @@
 %type <node> string iteration_statement labeled_statement constant_expression jump_statement external_declaration function_definition abstract_declarator
 %type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
 %type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration storage_class_specifier
-%type <node> type_qualifier function_specifier declaration_specifiers enum_specifier enumeration_constant enumerator enumerator_list
+%type <node> type_qualifier function_specifier declaration_specifiers enum_specifier enumeration_constant enumerator enumerator_list designation designator_list
+%type <node> initializer_list
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -379,9 +380,9 @@ declarator
     ;
 
 direct_declarator
-    : IDENTIFIER {$$ = create_identifier_node($1); }
+    : IDENTIFIER { $$ = create_identifier_node($1); }
 	| '(' declarator ')'
-	| direct_declarator '[' ']'
+	| direct_declarator '[' ']' { $$ = create_array_declaration_node($1,create_empty_statement_node()); }
 	| direct_declarator '[' '*' ']'
 	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
 	| direct_declarator '[' STATIC assignment_expression ']'
@@ -484,30 +485,67 @@ direct_abstract_declarator
 	;
 
 initializer
-	: '{' initializer_list '}'
-	| '{' initializer_list ',' '}'
+	: '{' initializer_list '}' { $$ = $2; }
+	| '{' initializer_list ',' '}' { $$ = $2; }
 	| assignment_expression {$$ = $1;}
 	;
 
 initializer_list
-	: designation initializer
-	| initializer
-	| initializer_list ',' designation initializer
-	| initializer_list ',' initializer
+	: designation initializer {
+		Node** initializers = (Node**)malloc(1 * sizeof(Node*));
+		initializers[0] = create_initializer_node($2, $1);;
+		$$ = create_initializers_list_node(initializers,1);
+	}
+	| initializer {
+		Node** initializers = (Node**)malloc(1 * sizeof(Node*));
+		initializers[0] = create_initializer_node($1, create_empty_statement_node());;
+		$$ = create_initializers_list_node(initializers,1);
+	}
+	| initializer_list ',' designation initializer {
+		InitializersListNode* prev_node = (InitializersListNode*)$1;
+		Node** new_initializers = (Node**)realloc(prev_node->initializers, (prev_node->count + 1) * sizeof(Node*));
+		new_initializers[prev_node->count] = create_initializer_node($4, $3);
+        prev_node->initializers = new_initializers;
+        prev_node->count++;
+        
+        $$ = $1;
+	}
+	| initializer_list ',' initializer{
+		InitializersListNode* prev_node = (InitializersListNode*)$1;
+		Node** new_initializers = (Node**)realloc(prev_node->initializers, (prev_node->count + 1) * sizeof(Node*));
+		new_initializers[prev_node->count] = create_initializer_node($3, create_empty_statement_node());
+        prev_node->initializers = new_initializers;
+        prev_node->count++;
+        
+        $$ = $1;
+	}
 	;
 
 designation
-	: designator_list '='
+	: designator_list '=' { $$ = $1; }
 	;
 
 designator_list
-	: designator
-	| designator_list designator
+	: designator {
+		Node** designators = (Node**)malloc(1 * sizeof(Node*));
+		designators[0] = $1;
+		$$ = create_designator_list_node(designators,1);
+	}
+	| designator_list designator {
+		DesignatorsListNode* prev_node = (DesignatorsListNode*)$1;
+		Node** new_designators = (Node**)realloc(prev_node->designators, (prev_node->count + 1) * sizeof(Node*));
+		new_designators[prev_node->count] = $2;
+        
+        prev_node->designators = new_designators;
+        prev_node->count++;
+        
+        $$ = $1;
+	}
 	;
 
 designator
-	: '[' constant_expression ']'
-	| '.' IDENTIFIER { $$ = create_identifier_node($2);}
+	: '[' constant_expression ']' { $$ = create_array_designator_node($2); }
+	| '.' IDENTIFIER { $$ = create_member_designator_node(create_identifier_node($2)); }
 	;
 
 static_assert_declaration

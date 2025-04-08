@@ -48,6 +48,11 @@ typedef enum NodeType {
     WRAPPER_NODE,
     ENUM_NODE,
     ENUMERATORS_LIST_NODE,
+    MEMBER_DESIGNATOR_NODE,
+    ARRAY_DESIGNATOR_NODE,
+    DESIGNATORS_LIST_NODE,
+    INITIALIZER_NODE,
+    INITIALIZERS_LIST_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -336,6 +341,37 @@ typedef struct {
     int count;
 } EnumeratorsListNode;
 
+typedef struct {
+    Node base;
+    Node* identifier;
+
+} MemberDesignatorNode;
+
+
+typedef struct {
+    Node base;
+    Node* expression;
+
+} ArrayDesignatorNode;
+
+typedef struct {
+    Node base;
+    Node** designators;
+    int count;
+} DesignatorsListNode;
+
+typedef struct {
+    Node base;
+    Node* initializer;
+    Node* designation;
+
+} InitializerNode;
+
+typedef struct {
+    Node base;
+    Node** initializers;
+    int count;
+} InitializersListNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -384,6 +420,11 @@ Node* create_labeled_statement_node(Node* identifier, Node* statement);
 Node* create_wrapper_node(Node* wrapper, Node* inner_node);
 Node* create_enum_node(Node* identifier, Node* enumerators_list);
 Node* create_enumerators_list_node(Node** enumerators_list, int count);
+Node* create_member_designator_node(Node* identifier);
+Node* create_array_designator_node(Node* expression);
+Node* create_designator_list_node(Node** designators, int count);
+Node* create_initializer_node(Node* initializer, Node* desgnation);
+Node* create_initializers_list_node(Node** initializers, int count);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -431,4 +472,9 @@ void print_labeled_statement_node(Node* node);
 void print_wrapper_node(Node* node);
 void print_enum_node(Node* node);
 void print_enumerators_list_node(Node* node);
+void print_member_designator_node(Node* node);
+void print_array_designator_node(Node* node);
+void print_designators_list_node(Node* node);
+void print_initializer_node(Node* node);
+void print_initializers_list_node(Node* node);
 #endif // AST_H

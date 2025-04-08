@@ -479,6 +479,49 @@ Node* create_enumerators_list_node(Node** enumerators_list, int count){
     return (Node*)node;
 }
 
+Node* create_member_designator_node(Node* identifier){
+    MemberDesignatorNode* node = (MemberDesignatorNode*)malloc(sizeof(MemberDesignatorNode));
+    node->base.type = MEMBER_DESIGNATOR_NODE;
+    node->base.print = print_member_designator_node;
+    node->identifier = identifier;
+    return (Node*)node;
+}
+
+Node* create_array_designator_node(Node* expression){
+    ArrayDesignatorNode* node = (ArrayDesignatorNode*)malloc(sizeof(ArrayDesignatorNode));
+    node->base.type = ARRAY_DESIGNATOR_NODE;
+    node->base.print = print_array_designator_node;
+    node->expression = expression;
+    return (Node*)node;
+}
+
+Node* create_designator_list_node(Node** designators, int count){
+    DesignatorsListNode* node = (DesignatorsListNode*)malloc(sizeof(DesignatorsListNode));
+    node->base.type = DESIGNATORS_LIST_NODE;
+    node->base.print = print_designators_list_node;
+    node->designators = designators;
+    node->count = count;
+    return (Node*)node;
+}
+
+Node* create_initializer_node(Node* initializer, Node* desgnation){
+    InitializerNode* node = (InitializerNode*)malloc(sizeof(InitializerNode));
+    node->base.type = INITIALIZER_NODE;
+    node->base.print = print_initializer_node;
+    node->initializer = initializer;
+    node->designation = desgnation;
+    return (Node*)node;
+}
+
+Node* create_initializers_list_node(Node** initializers, int count){
+    InitializersListNode* node = (InitializersListNode*)malloc(sizeof(InitializersListNode));
+    node->base.type = INITIALIZERS_LIST_NODE;
+    node->base.print = print_initializers_list_node;
+    node->initializers = initializers;
+    node->count = count;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -1201,6 +1244,84 @@ void print_enumerators_list_node(Node* node){
         printf("enumerators[%d]: \n",i);
         indent_level++;
         list_node->enumerators_list[i]->print(list_node->enumerators_list[i]);
+        indent_level--;
+    }
+    indent_level--;
+}
+
+void print_member_designator_node(Node* node){
+    MemberDesignatorNode* mem_des = (MemberDesignatorNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Member designator Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Identifier: \n");
+    indent_level++;
+    mem_des->identifier->print(mem_des->identifier);
+    indent_level--;
+    indent_level--;
+}
+
+void print_array_designator_node(Node* node){
+    ArrayDesignatorNode* arr_des = (ArrayDesignatorNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Array designator Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Expression: \n");
+    indent_level++;
+    arr_des->expression->print(arr_des->expression);
+    indent_level--;
+    indent_level--;
+}
+
+void print_designators_list_node(Node* node){
+    DesignatorsListNode* design_list = (DesignatorsListNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Designators list Node, count: %d" COLOR_RESET "\n",design_list->count);
+    indent_level++;
+    for(int i = 0; i < design_list->count; i++){
+        print_indent();
+        printf("designator[%d]: \n",i);
+        indent_level++;
+        design_list->designators[i]->print(design_list->designators[i]);
+        indent_level--;
+    }
+    indent_level--;
+}
+
+void print_initializer_node(Node* node){
+    InitializerNode* initializer_node = (InitializerNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Initializer Node: " COLOR_RESET "\n");
+    if(initializer_node->designation->type != EMPTY_STATEMENT_NODE){
+        indent_level++;
+        print_indent();
+        printf("Designation: \n");
+        indent_level++;
+        initializer_node->designation->print(initializer_node->designation);
+        indent_level--;
+        indent_level--;
+    }
+    indent_level++;
+    print_indent();
+    printf("Initializer: \n");
+    indent_level++;
+    initializer_node->initializer->print(initializer_node->initializer);
+    indent_level--;
+    indent_level--;
+}
+
+void print_initializers_list_node(Node* node){
+    InitializersListNode* initalizers_list = (InitializersListNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Initializers list Node: " COLOR_RESET "\n");
+    indent_level++;
+    for(int i = 0; i < initalizers_list->count; i++){
+        print_indent();
+        printf("initializer[%d]: \n",i);
+        indent_level++;
+        initalizers_list->initializers[i]->print(initalizers_list->initializers[i]);
         indent_level--;
     }
     indent_level--;
