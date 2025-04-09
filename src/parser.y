@@ -222,8 +222,8 @@ constant_expression
 declaration
     : declaration_specifiers ';' { $$ = $1; }
     | declaration_specifiers init_declarator_list ';' {
-		DeclarationNode* decl_node = (DeclarationNode*)$2;
-		decl_node->type_specifier = $1;
+		DeclaratorsListNode* node = (DeclaratorsListNode*)$2;
+		node->type_specifier = $1;
 		$$ = $2;
 		}
     ;
@@ -240,8 +240,20 @@ declaration_specifiers
     ;
 
 init_declarator_list
-	: init_declarator { $$ = $1; }
-	| init_declarator_list ',' init_declarator
+	: init_declarator {
+		Node** declarator = (Node**)malloc(1 * sizeof(Node*));
+		declarator[0] = $1;
+		$$ = create_declarators_list_node(declarator, 1);
+	}
+	| init_declarator_list ',' init_declarator {
+
+		DeclaratorsListNode* prev_node = (DeclaratorsListNode*)$1;
+		Node** new_declarators = (Node**)realloc(prev_node->declarators, (prev_node->count + 1) * sizeof(Node*));
+		new_declarators[prev_node->count] = $3;
+        prev_node->declarators = new_declarators;
+        prev_node->count++;
+        $$ = $1;
+	}
 	;
 
 init_declarator
@@ -279,7 +291,7 @@ type_specifiers
 struct_or_union_specifier
 	: struct_or_union '{' struct_declaration_list '}' { $$ = create_structunion_node($1,create_empty_statement_node(), $3); }
 	| struct_or_union IDENTIFIER '{' struct_declaration_list '}' { $$ = create_structunion_node($1, create_identifier_node($2), $4); }
-	| struct_or_union IDENTIFIER { create_structunion_node($1,create_identifier_node($2), create_empty_statement_node()); }
+	| struct_or_union IDENTIFIER { $$ = create_structunion_node($1,create_identifier_node($2), create_empty_statement_node()); }
 	;
 
 struct_or_union
@@ -433,12 +445,12 @@ parameter_list
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator { 
-		Node* node = create_declaration_node($2,create_empty_statement_node()); 
-		DeclarationNode* decl_node = (DeclarationNode*)node;
-		decl_node->type_specifier = $1;
-		
-		$$ = (Node*)decl_node;
+	: declaration_specifiers declarator {
+		Node** declarators = (Node**)malloc(1 * sizeof(Node*));
+		declarators[0] = create_declaration_node($2,create_empty_statement_node());
+		Node* decl_list = create_declarators_list_node(declarators, 1);
+		((DeclaratorsListNode*)decl_list)->type_specifier = $1;
+		$$ = (Node*)decl_list;
 	}
 	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
@@ -446,7 +458,7 @@ parameter_declaration
 
 identifier_list
 	: IDENTIFIER
-	| identifier_list ',' IDENTIFIER
+	| identifier_list ',' IDENTIFIER 
 	;
 
 type_name

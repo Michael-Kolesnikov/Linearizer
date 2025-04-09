@@ -184,17 +184,27 @@ void generate_code(Node* node){
             }
             break;
         }
+        case DECLARATORS_LIST_NODE: {
+            DeclaratorsListNode* decl_list = (DeclaratorsListNode*)node;
+            generate_code(decl_list->type_specifier);
+            for(int i = 0; i < decl_list->count; i++){
+                generate_code(decl_list->declarators[i]);
+                if(i != decl_list->count - 1 && i != 0){
+                    fprintf(output_file, ", ");
+                }
+            }
+            if (current_context == CONTEXT_DEFAULT) {
+                fprintf(output_file, ";");
+            }
+            break;
+        }
         case DECLARATION_NODE: {
             DeclarationNode* declaration = (DeclarationNode*)node;
-            generate_code(declaration->type_specifier);
             fprintf(output_file, " ");
             generate_code(declaration->identifier);
             if(declaration->initializer->type != EMPTY_STATEMENT_NODE){
                 fprintf(output_file," = ");
                 generate_code(declaration->initializer);
-            }
-            if (current_context == CONTEXT_DEFAULT) {
-                fprintf(output_file, ";");
             }
             break;
         }

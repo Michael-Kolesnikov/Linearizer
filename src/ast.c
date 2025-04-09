@@ -522,6 +522,15 @@ Node* create_initializers_list_node(Node** initializers, int count){
     return (Node*)node;
 }
 
+Node* create_declarators_list_node(Node** declarators, int count){
+    DeclaratorsListNode* node = (DeclaratorsListNode*)malloc(sizeof(DeclaratorsListNode));
+    node->base.type = DECLARATORS_LIST_NODE;
+    node->base.print = print_declarators_list_node;
+    node->declarators = declarators;
+    node->count = count;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -568,11 +577,6 @@ void print_declaration_node(Node* node){
     print_indent();
     printf( COLOR_BLUE "Declaration Node: " COLOR_RESET "\n");
     indent_level++;
-    print_indent();
-    printf("Declarator type: \n");
-    indent_level++;
-    declaration_node->type_specifier->print(declaration_node->type_specifier);
-    indent_level--;
     print_indent();
     printf("Declarator identifier:\n");
     indent_level++;
@@ -1324,5 +1328,29 @@ void print_initializers_list_node(Node* node){
         initalizers_list->initializers[i]->print(initalizers_list->initializers[i]);
         indent_level--;
     }
+    indent_level--;
+}
+
+void print_declarators_list_node(Node* node){
+    DeclaratorsListNode* declarators_list = (DeclaratorsListNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Declarator list Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Specifier: \n");
+    indent_level++;
+    declarators_list->type_specifier->print(declarators_list->type_specifier);
+    indent_level--;
+    print_indent();
+    printf("Declorators: \n");
+    indent_level++;
+    for(int i = 0; i < declarators_list->count; i++){
+        print_indent();
+        printf("declarator[%d]: \n",i);
+        indent_level++;
+        declarators_list->declarators[i]->print(declarators_list->declarators[i]);
+        indent_level--;
+    }
+    indent_level--;
     indent_level--;
 }

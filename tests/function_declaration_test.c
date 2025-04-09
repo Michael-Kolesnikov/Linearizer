@@ -32,8 +32,10 @@ START_TEST(test_function_declaration_with_one_parameter)
 {
     Node* return_type = create_value_node("int");
     Node** params = (Node**)malloc(1 * sizeof(Node*));
-    Node* first_param = create_declaration_node(create_identifier_node("param1"),create_empty_statement_node());
-    ((DeclarationNode*)first_param)->type_specifier = create_value_node("int");
+    Node** declarator = (Node**)malloc(1 * sizeof(Node*));
+    declarator[0] = create_declaration_node(create_identifier_node("param1"),create_empty_statement_node());
+    Node* first_param = create_declarators_list_node(declarator, 1);
+    ((DeclaratorsListNode*)first_param)->type_specifier = create_value_node("int");
     params[0] = first_param;
     Node* parameters_node = create_parameters_node(params, 1);
     Node* function_declarator = create_function_declarator_node(create_identifier_node("function_name"),parameters_node);

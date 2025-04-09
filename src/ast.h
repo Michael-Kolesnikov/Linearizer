@@ -53,6 +53,7 @@ typedef enum NodeType {
     DESIGNATORS_LIST_NODE,
     INITIALIZER_NODE,
     INITIALIZERS_LIST_NODE,
+    DECLARATORS_LIST_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -86,7 +87,6 @@ typedef struct BinaryOperationNode{
 
 typedef struct {
     Node base;
-    Node* type_specifier;
     Node* identifier;
     Node* initializer;
 } DeclarationNode;
@@ -372,6 +372,13 @@ typedef struct {
     Node** initializers;
     int count;
 } InitializersListNode;
+
+typedef struct {
+    Node base;
+    Node** declarators;
+    Node* type_specifier;
+    int count;
+} DeclaratorsListNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -425,6 +432,7 @@ Node* create_array_designator_node(Node* expression);
 Node* create_designator_list_node(Node** designators, int count);
 Node* create_initializer_node(Node* initializer, Node* desgnation);
 Node* create_initializers_list_node(Node** initializers, int count);
+Node* create_declarators_list_node(Node** declarators, int count);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -477,4 +485,5 @@ void print_array_designator_node(Node* node);
 void print_designators_list_node(Node* node);
 void print_initializer_node(Node* node);
 void print_initializers_list_node(Node* node);
+void print_declarators_list_node(Node* node);
 #endif // AST_H
