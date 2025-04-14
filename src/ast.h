@@ -54,6 +54,7 @@ typedef enum NodeType {
     INITIALIZER_NODE,
     INITIALIZERS_LIST_NODE,
     DECLARATORS_LIST_NODE,
+    GROUPED_DECLARATOR_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -222,6 +223,7 @@ typedef struct {
 
 typedef struct{
     Node base;
+    Node* point;
     Node* declarator;
 } PointerNode;
 
@@ -379,6 +381,12 @@ typedef struct {
     Node* type_specifier;
     int count;
 } DeclaratorsListNode;
+
+typedef struct {
+    Node base;
+    Node* declarator;
+} GroupedDeclaratorNode;
+
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -407,7 +415,7 @@ Node* create_postfix_increment_node(Node* expression);
 Node* create_prefix_decrement_node(Node* expression);
 Node* create_postfix_decrement_node(Node* expression);
 Node* create_unary_operator_expression_node(char* unary_operator, Node* expression);
-Node* create_pointer_node(Node* declarator);
+Node* create_pointer_node(Node* point, Node* declarator);
 Node* create_parameters_node(Node** parameters, int count);
 Node* create_function_declarator_node(Node* declarator, Node* parameters);
 Node* create_for_node(Node* initialization, Node* condition, Node* update, Node* body);
@@ -433,6 +441,7 @@ Node* create_designator_list_node(Node** designators, int count);
 Node* create_initializer_node(Node* initializer, Node* desgnation);
 Node* create_initializers_list_node(Node** initializers, int count);
 Node* create_declarators_list_node(Node** declarators, int count);
+Node* create_grouped_declarator_node(Node* declarator);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -486,4 +495,5 @@ void print_designators_list_node(Node* node);
 void print_initializer_node(Node* node);
 void print_initializers_list_node(Node* node);
 void print_declarators_list_node(Node* node);
+void print_grouped_declarator_node(Node* node);
 #endif // AST_H

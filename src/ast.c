@@ -299,11 +299,12 @@ Node* create_unary_operator_expression_node(char* unary_operator, Node* expressi
     return (Node*)node;
 }
 
-Node* create_pointer_node(Node* declarator){
+Node* create_pointer_node(Node* point, Node* declarator){
     PointerNode* node = (PointerNode*)malloc(sizeof(PointerNode));
     node->base.type = POINTER_NODE;
     node->base.print = print_pointer_node;
     node->declarator = declarator;
+    node->point = point;
     return (Node*)node;
 }
 
@@ -528,6 +529,14 @@ Node* create_declarators_list_node(Node** declarators, int count){
     node->base.print = print_declarators_list_node;
     node->declarators = declarators;
     node->count = count;
+    return (Node*)node;
+}
+
+Node* create_grouped_declarator_node(Node* declarator){
+    GroupedDeclaratorNode* node = (GroupedDeclaratorNode*)malloc(sizeof(GroupedDeclaratorNode));
+    node->base.type = GROUPED_DECLARATOR_NODE;
+    node->base.print = print_grouped_declarator_node;
+    node->declarator = declarator;
     return (Node*)node;
 }
 
@@ -911,6 +920,11 @@ void print_pointer_node(Node* node){
     printf(COLOR_BLUE "Pointer Node: " COLOR_RESET " \n");
     indent_level++;
     print_indent();
+    printf("Point expression: \n");
+    indent_level++;
+    pointer_node->point->print(pointer_node->point);
+    indent_level--;
+    print_indent();
     printf("Pointer declarator: \n");
     indent_level++;
     pointer_node->declarator->print(pointer_node->declarator);
@@ -936,6 +950,9 @@ void print_function_declarator_node(Node* node){
     FunctionDeclaratorNode* func_decl_node = (FunctionDeclaratorNode*)node;
     print_indent();
     printf(COLOR_BLUE "Function declarator Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Declarator: \n");
     indent_level++;
     func_decl_node->declarator->print(func_decl_node->declarator);
     indent_level--;
@@ -1120,6 +1137,7 @@ void print_structunion_node(Node* node){
     printf("Body: \n");
     indent_level++;
     su_node->body->print(su_node->body);
+    indent_level--;
     indent_level--;
 }
 
@@ -1342,7 +1360,7 @@ void print_declarators_list_node(Node* node){
     declarators_list->type_specifier->print(declarators_list->type_specifier);
     indent_level--;
     print_indent();
-    printf("Declorators: \n");
+    printf("Declarators: \n");
     indent_level++;
     for(int i = 0; i < declarators_list->count; i++){
         print_indent();
@@ -1351,6 +1369,18 @@ void print_declarators_list_node(Node* node){
         declarators_list->declarators[i]->print(declarators_list->declarators[i]);
         indent_level--;
     }
+    indent_level--;
+    indent_level--;
+}
+
+void print_grouped_declarator_node(Node* node){
+    print_indent();
+    printf(COLOR_BLUE "Grouped declarator Node:" COLOR_RESET "\n");
+    indent_level++;
+    printf("Declarator: \n");
+    GroupedDeclaratorNode* group = (GroupedDeclaratorNode*)node;
+    indent_level++;
+    group->declarator->print(group->declarator);
     indent_level--;
     indent_level--;
 }
