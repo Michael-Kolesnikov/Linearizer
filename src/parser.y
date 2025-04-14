@@ -21,11 +21,9 @@
 %token	AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token	SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token	XOR_ASSIGN OR_ASSIGN
-%token	ENUMERATION_CONSTANT
 %token	ENUM ELLIPSIS
 %token	CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 %token	ALIGNAS ALIGNOF GENERIC STATIC_ASSERT
-%token COMMENT CHARACTER PREPROCESSOR
 %start program
 %union{
 	Node* node;
@@ -51,7 +49,7 @@
 %type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
 %type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration storage_class_specifier
 %type <node> type_qualifier function_specifier declaration_specifiers enum_specifier enumeration_constant enumerator enumerator_list designation designator_list
-%type <node> initializer_list
+%type <node> initializer_list type_qualifier_list pointer direct_abstract_declarator
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -387,38 +385,37 @@ function_specifier
 	;
 
 declarator
-    : pointer direct_declarator { $$ = create_pointer_node($2); }
+    : pointer direct_declarator { $$ = create_pointer_node($1, $2); }
     | direct_declarator { $$ = $1;}
     ;
 
 direct_declarator
     : IDENTIFIER { $$ = create_identifier_node($1); }
-	| '(' declarator ')'
+	| '(' declarator ')' { $$ = create_grouped_declarator_node($2); }
 	| direct_declarator '[' ']' { $$ = create_array_declaration_node($1,create_empty_statement_node()); }
-	| direct_declarator '[' '*' ']'
+	| direct_declarator '[' '*' ']' { $$ = create_array_declaration_node($1,create_value_node("*"));}
 	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
 	| direct_declarator '[' STATIC assignment_expression ']'
 	| direct_declarator '[' type_qualifier_list '*' ']'
 	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list ']'
+	| direct_declarator '[' type_qualifier_list assignment_expression ']' { $$ = create_array_declaration_node($1,create_wrapper_node($3,$4)); }
+	| direct_declarator '[' type_qualifier_list ']' { $$ = create_array_declaration_node($1, $3); }
 	| direct_declarator '[' assignment_expression ']' { $$ = create_array_declaration_node($1,$3); }
     | direct_declarator '(' parameter_type_list ')' { $$ = create_function_declarator_node($1, $3); }
-	| direct_declarator '(' ')' { $$ = create_function_declarator_node($1, create_empty_statement_node());}
-    | direct_declarator '(' identifier_list ')'
+	| direct_declarator '(' ')' { $$ = create_function_declarator_node($1, create_empty_statement_node()); }
 	;
 
 pointer
     : '*' type_qualifier_list pointer
-	| '*' type_qualifier_list
-	| '*' pointer
-	| '*'
+	| '*' type_qualifier_list { $$ = $2; }
+	| '*' pointer { $$ = create_wrapper_node(create_value_node("*"),$2); /*create_pointer_node(create_empty_statement_node(), $2);*/ }
+	| '*' { $$ = create_wrapper_node(create_value_node("*"),create_empty_statement_node());}
 	;
 
 
 type_qualifier_list
-	: type_qualifier
-	| type_qualifier_list type_qualifier
+	: type_qualifier { $$ = $1; }
+	| type_qualifier_list type_qualifier { $$ = create_wrapper_node($1, $2); }
 	;
 
 parameter_type_list
@@ -452,29 +449,24 @@ parameter_declaration
 		((DeclaratorsListNode*)decl_list)->type_specifier = $1;
 		$$ = (Node*)decl_list;
 	}
-	| declaration_specifiers abstract_declarator
-	| declaration_specifiers
-	;
-
-identifier_list
-	: IDENTIFIER
-	| identifier_list ',' IDENTIFIER 
+	| declaration_specifiers abstract_declarator { $$ = create_wrapper_node($1, $2); }
+	| declaration_specifiers { $$ = $1; }
 	;
 
 type_name
-	: specifier_qualifier_list abstract_declarator
+	: specifier_qualifier_list abstract_declarator { $$ = create_wrapper_node($1, $2); }
 	| specifier_qualifier_list { $$ = $1; }
 	;
 
 abstract_declarator
-	: pointer direct_abstract_declarator
-	| pointer
-	| direct_abstract_declarator
+	: pointer direct_abstract_declarator { $$ = create_pointer_node($1, $2); }
+	| pointer { $$ = $1; }
+	| direct_abstract_declarator { $$ = $1; }
 	;
 
 direct_abstract_declarator
-	: '(' abstract_declarator ')'
-	| '[' ']'
+	: '(' abstract_declarator ')' { $$ = $2; }
+	| '[' ']' { $$ = create_array_declaration_node(create_empty_statement_node(),create_empty_statement_node()); }
 	| '[' '*' ']'
 	| '[' STATIC type_qualifier_list assignment_expression ']'
 	| '[' STATIC assignment_expression ']'
@@ -492,8 +484,8 @@ direct_abstract_declarator
 	| direct_abstract_declarator '[' assignment_expression ']'
 	| '(' ')'
 	| '(' parameter_type_list ')'
-	| direct_abstract_declarator '(' ')'
-	| direct_abstract_declarator '(' parameter_type_list ')'
+	| direct_abstract_declarator '(' ')' { $$ = create_function_declarator_node($1, create_empty_statement_node()); }
+	| direct_abstract_declarator '(' parameter_type_list ')' { $$ = create_function_declarator_node($1, $3); }
 	;
 
 initializer
@@ -631,7 +623,7 @@ iteration_statement
 	| FOR '(' declaration expression_statement expression ')' statement { $$ = create_for_node($3, $4, $5, $7); }
 
 jump_statement
-	: GOTO IDENTIFIER ';' {$$ = create_goto_node(create_identifier_node($2)); }
+	: GOTO IDENTIFIER ';' { $$ = create_goto_node(create_identifier_node($2)); }
 	| CONTINUE ';' { $$ = create_continue_node(); }
 	| BREAK ';' { $$ = create_break_node(); }
 	| RETURN ';' { $$ = create_return_node(create_empty_statement_node()); }
@@ -649,14 +641,9 @@ external_declaration
 	;
 
 function_definition
-    : declaration_specifiers declarator declaration_list compound_statement 
-    | declaration_specifiers declarator compound_statement { $$ = create_function_declaration_node($1,$2,$3); }
+    : declaration_specifiers declarator compound_statement { $$ = create_function_declaration_node($1,$2,$3); }
     ;
 
-declaration_list
-	: declaration
-	| declaration_list declaration
-	;
 %%
 
 

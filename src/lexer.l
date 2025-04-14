@@ -27,7 +27,7 @@ int is_typedef_name(const char *name) {
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
 "char"					{ yylval.str = strdup(yytext); return(CHAR); }
-"const"					{ return(CONST); }
+"const"					{ yylval.str = strdup(yytext); return(CONST); }
 "continue"				{ return(CONTINUE); }
 "default"				{ return(DEFAULT); }
 "do"					{ return(DO); }
@@ -43,7 +43,7 @@ int is_typedef_name(const char *name) {
 "int"					{ yylval.str = strdup(yytext); return(INT); }
 "long"					{ yylval.str = strdup(yytext); return(LONG); }
 "register"				{ yylval.str = strdup(yytext); return(REGISTER); }
-"restrict"				{ return(RESTRICT); }
+"restrict"				{ yylval.str = strdup(yytext); return(RESTRICT); }
 "return"				{ return(RETURN); }
 "short"					{ yylval.str = strdup(yytext); return(SHORT); }
 "signed"				{ yylval.str = strdup(yytext); return(SIGNED); }
@@ -61,11 +61,11 @@ int is_typedef_name(const char *name) {
 "union"					{ yylval.str = strdup(yytext); return(UNION); }
 "unsigned"				{ yylval.str = strdup(yytext); return(UNSIGNED); }
 "void"					{ yylval.str = strdup(yytext); return(VOID); }
-"volatile"				{ return(VOLATILE); }
+"volatile"				{ yylval.str = strdup(yytext); return(VOLATILE); }
 "while"					{ return(WHILE); }
 "_Alignas"              { return ALIGNAS; }
 "_Alignof"              { return ALIGNOF; }
-"_Atomic"               { return ATOMIC; }
+"_Atomic"               { yylval.str = strdup(yytext); return ATOMIC; }
 "_Bool"                 { yylval.str = strdup(yytext); return BOOL; }
 "_Complex"              { yylval.str = strdup(yytext); return COMPLEX; }
 "_Generic"              { return GENERIC; }
@@ -91,10 +91,7 @@ int is_typedef_name(const char *name) {
 "0"|[0-9]+              { yylval.ival = atoi(yytext); return I_CONST; }
 [0-9]+\.[0-9]+          { yylval.fval = atof(yytext); return F_CONST; }
 
-"#"[a-zA-Z]+.*          { return PREPROCESSOR; }
-
 ((u8|u|U|L)?\"([^"\\\n]|(\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+)))*\"[ \t\v\n\f]*)+         { yylval.str = strdup(yytext); return STRING; }
-\'(\\.|[^'])\'          { return CHARACTER; }
 
 "..."					{ return ELLIPSIS; }
 ">>="					{ return RIGHT_ASSIGN; }

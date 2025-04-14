@@ -8,6 +8,7 @@ typedef enum {
     CONTEXT_PARAMETERS,
     CONTEXT_COMPOUND,
     CONTEXT_FOR,
+    CONTEXT_POINTER,
 } Context;
 
 static int label_counter = 1;
@@ -55,6 +56,17 @@ void generate_code(Node* node){
             fprintf(output_file, "%s:\n", end_label);
             break;
         }
+        case DOWHILE_NODE: {
+            char* label_start = generate_label();
+            DoWhileNode* dw = (DoWhileNode*)node;
+            fprintf(output_file, "%s:\n", label_start);
+            generate_code(dw->do_statement);
+            fprintf(output_file, "if (");
+            generate_code(dw->condition);
+            fprintf(output_file, ") goto %s;", label_start);
+            free(label_start);
+            break;
+        }
         case FOR_NODE: {
             ForNode* for_node = (ForNode*)node;
             char* loop_label = generate_label();
@@ -71,9 +83,10 @@ void generate_code(Node* node){
             fprintf(output_file, "%s:\n", loop_label);
             
             if (((ExpressionStatementNode*)for_node->condition)->expr->type != EMPTY_STATEMENT_NODE) {
-                fprintf(output_file, "if (!(");
+                fprintf(output_file, "int temp = ");
                 generate_code(for_node->condition);
-                fprintf(output_file, ")) goto %s;\n", end_label);
+                fprintf(output_file,";\n");
+                fprintf(output_file, "if (temp) goto %s;\n", end_label);
             }
             current_context = CONTEXT_DEFAULT;
             generate_code(for_node->body);
@@ -87,6 +100,252 @@ void generate_code(Node* node){
             free(loop_label);
             free(end_label);
             current_context = CONTEXT_DEFAULT;
+            break;
+        }
+        case GROUPED_DECLARATOR_NODE: {
+            GroupedDeclaratorNode* group_decl = (GroupedDeclaratorNode*)node;
+            fprintf(output_file,"(");
+            generate_code(group_decl->declarator);
+            fprintf(output_file,")");
+            break;
+        }
+        case BINARY_OPERATION_NODE: {
+            BinaryOperationNode* binop_node = (BinaryOperationNode*)node;
+            if(binop_node->left->type == BINARY_OPERATION_NODE){
+                fprintf(output_file,"(");
+                generate_code(binop_node->left);
+                fprintf(output_file,")");
+            }else{
+                generate_code(binop_node->left);
+            }
+            fprintf(output_file, " %s ",binop_node->op);
+            if(binop_node->right->type == BINARY_OPERATION_NODE){
+                fprintf(output_file,"(");
+                generate_code(binop_node->right);
+                fprintf(output_file,")");
+            }else{
+                generate_code(binop_node->right);
+            }
+            break;
+        }
+        case ENUM_NODE: {
+            EnumNode* enum_node = (EnumNode*)node;
+            fprintf(output_file, "enum ");
+            generate_code(enum_node->identifier);
+            if(enum_node->enumerators_list->type != EMPTY_STATEMENT_NODE){
+                fprintf(output_file, "{\n");
+                generate_code(enum_node->enumerators_list);
+                fprintf(output_file,"\n};");
+            }
+            break;
+        }
+        case ENUMERATORS_LIST_NODE: {
+            EnumeratorsListNode* enum_list = (EnumeratorsListNode*)node;
+            for(int i = 0; i < enum_list->count; i++){
+                generate_code(enum_list->enumerators_list[i]);
+                if(i != enum_list->count - 1){
+                    fprintf(output_file, ",\n");
+                }
+            }
+            break;
+        }
+        case ARRAY_EXPRESSION_NODE: {
+            ArrayExpressionNode* array = (ArrayExpressionNode*)node;
+            generate_code(array->identifier);
+            fprintf(output_file,"[");
+            generate_code(array->index);
+            fprintf(output_file,"]");
+            break;
+        }
+        case DESIGNATORS_LIST_NODE: {
+            DesignatorsListNode* designators_list = (DesignatorsListNode*)node;
+            for(int i = 0; i < designators_list->count; i++){
+                generate_code(designators_list->designators[i]);
+            }
+            break;
+        }
+        case MEMBER_DESIGNATOR_NODE: {
+            MemberDesignatorNode* member_designator = (MemberDesignatorNode*)node;
+            fprintf(output_file, ".");
+            generate_code(member_designator->identifier);
+            break;
+        }
+        case ARRAY_DESIGNATOR_NODE: {
+            ArrayDesignatorNode* array_designator = (ArrayDesignatorNode*)node;
+            fprintf(output_file,"[");
+            generate_code(array_designator->expression);
+            fprintf(output_file,"]");
+            break;
+        }
+        case STRUCTUNION_NODE: {
+            StructUnionNode* su_node = (StructUnionNode*)node;
+            generate_code(su_node->kind);
+            fprintf(output_file," ");
+            generate_code(su_node->identifier);
+            if(su_node->body->type != EMPTY_STATEMENT_NODE){
+                fprintf(output_file, "{\n");
+                generate_code(su_node->body);
+                fprintf(output_file, "};");
+            }
+            break;
+        }
+        case STRUCT_DECLARATIONS_LIST_NODE: {
+            StructDeclarationsListNode* list = (StructDeclarationsListNode*)node;
+            for(int i = 0; i < list->count; i++){
+                generate_code(list->declarations_list[i]);
+                fprintf(output_file, "\n");
+            }
+            break;
+        }
+        case STRUCT_DECLARATOR_NODE: {
+            StructDeclaratorNode* declarator = (StructDeclaratorNode*)node;
+            generate_code(declarator->type);
+            fprintf(output_file, " ");
+            generate_code(declarator->declarator);
+            if(declarator->bit_width->type != EMPTY_STATEMENT_NODE){
+                fprintf(output_file, " : ");
+                generate_code(declarator->bit_width);
+            }
+            fprintf(output_file, ";");
+            break;
+        }
+        case LABELED_STATEMENT_NODE: {
+            LabeledStatementNode* lbl_stmnt = (LabeledStatementNode*)node;
+            generate_code(lbl_stmnt->identifier);
+            fprintf(output_file, ": ");
+            if(lbl_stmnt->statement->type == EXPRESSION_STATEMENT_NODE 
+                && ((ExpressionStatementNode*)lbl_stmnt->statement)->expr->type == EMPTY_STATEMENT_NODE){
+                fprintf(output_file," ;");
+            } else if (lbl_stmnt->statement->type == COMPOUND_STATEMENT_NODE){
+                fprintf(output_file,"{\n");
+                generate_code(lbl_stmnt->statement);
+                fprintf(output_file,"}");
+            }else{
+                fprintf(output_file, "\n");
+                generate_code(lbl_stmnt->statement);
+            }
+            break;
+        }
+        case GOTO_NODE: {
+            GotoNode* goto_node = (GotoNode*)node;
+            fprintf(output_file, "goto ");
+            generate_code(goto_node->identifier);
+            fprintf(output_file, ";");
+            break;
+        }
+        case INITIALIZERS_LIST_NODE: {
+            InitializersListNode* list = (InitializersListNode*)node;
+            fprintf(output_file, "{");
+            for(int i = 0; i < list->count; i++){
+                generate_code(list->initializers[i]);
+                if(list->count != 1 && i != list->count - 1){
+                    fprintf(output_file, ", ");
+                }
+            }
+            fprintf(output_file, "}");
+            break;
+        }
+        case INITIALIZER_NODE: {
+            InitializerNode* initializer = (InitializerNode*)node;
+            if(initializer->designation->type != EMPTY_STATEMENT_NODE){
+                generate_code(initializer->designation);
+                fprintf(output_file, " = ");
+            }
+            generate_code(initializer->initializer);
+            break;
+        }
+        case CAST_EXPRESSION_NODE: {
+            CastExpressionNode* cast_node = (CastExpressionNode*)node;
+            fprintf(output_file, "(");
+            generate_code(cast_node->type);
+            fprintf(output_file, ")");
+            generate_code(cast_node->expression);
+            break;
+        }
+        case SIZEOF_NODE: {
+            SizeofNode* sizeof_node = (SizeofNode*)node;
+            fprintf(output_file, "sizeof(");
+            generate_code(sizeof_node->expression);
+            fprintf(output_file, ")");
+            break;
+        }
+        case POINTER_MEMBER_ACCESS_EXPRESSION_NODE: {
+            PointerMemberAccessExpressionNode* member_access = (PointerMemberAccessExpressionNode*)node;
+            generate_code(member_access->pointer_expression);
+            fprintf(output_file,"->");
+            generate_code(member_access->field_name);
+            break;
+        }
+        case MEMBER_ACCESS_EXPRESSION_NODE: {
+            MemberAccessExpressionNode* member_access = (MemberAccessExpressionNode*)node;
+            generate_code(member_access->object_expression);
+            fprintf(output_file,".");
+            generate_code(member_access->field_name);
+            break;
+        }
+        case WRAPPER_NODE: {
+            WrapperNode* wrapper = (WrapperNode*)node;
+            generate_code(wrapper->wrapper);
+            if(current_context == CONTEXT_DEFAULT){
+                fprintf(output_file, " ");
+            }
+            generate_code(wrapper->inner_node);
+            break;
+        }
+        case TERNARY_OPERATOR_NODE: {
+            TernaryOperatorNode* ternary = (TernaryOperatorNode*)node;
+            fprintf(output_file,"(");
+            generate_code(ternary->condition);
+            fprintf(output_file,") ? ");
+            fprintf(output_file,"(");
+            generate_code(ternary->then_statement);
+            fprintf(output_file,") ");
+            fprintf(output_file,": ");
+            fprintf(output_file,"(");
+            generate_code(ternary->else_statement);
+            fprintf(output_file,")");
+            break;
+        }
+        case RETURN_NODE: {
+            fprintf(output_file,"return ");
+            ReturnNode* return_node = (ReturnNode*)node;
+            if(return_node->expression->type != EMPTY_STATEMENT_NODE){
+                generate_code(return_node->expression);
+            }
+            fprintf(output_file, ";");
+            break;
+        }
+        case CONTINUE_NODE: {
+            fprintf(output_file, "continue;");
+            break;
+        }
+        case CASE_NODE: {
+            CaseNode* case_node = (CaseNode*)node;
+            fprintf(output_file,"case ");
+            generate_code(case_node->expression);
+            fprintf(output_file, ":{\n");
+            generate_code(case_node->body);
+            fprintf(output_file,"}");
+            break;
+        }
+        case SWITCH_NODE: {
+            SwitchNode* sw_node = (SwitchNode*)node;
+            fprintf(output_file, "switch(");
+            generate_code(sw_node->expression);
+            fprintf(output_file, "){\n");
+            generate_code(sw_node->body);
+            fprintf(output_file,"}");
+            break;
+        }
+        case BREAK_NODE: {
+            fprintf(output_file, "break;");
+            break;
+        }
+        case DEFAULT_NODE: {
+            DefaultNode* default_node = (DefaultNode*)node;
+            fprintf(output_file,"default: {\n");
+            generate_code(default_node->body);
+            fprintf(output_file,"}");
             break;
         }
         case ARRAY_DECLARATION_NODE: {
@@ -128,6 +387,24 @@ void generate_code(Node* node){
             generate_code(assignment_node->right);
             break;
         }
+        case PREFIX_DECREMENT_NODE: {
+            PrefixDecrement* decr = (PrefixDecrement*)node;
+            fprintf(output_file, "--");
+            generate_code(decr->expression);
+            break;
+        }
+        case POSTFIX_DECREMENT_NODE: {
+            PostfixDecrement* decr = (PostfixDecrement*)node;
+            generate_code(decr->expression);
+            fprintf(output_file, "--");
+            break;
+        }
+        case PREFIX_INCREMENT_NODE: {
+            PrefixIncrement* incr = (PrefixIncrement*)node;
+            fprintf(output_file, "++");
+            generate_code(incr->expression);
+            break;
+        }
         case POSTFIX_INCEMENT_NODE: {
             PostfixIncrement* incr = (PostfixIncrement*)node;
             generate_code(incr->expression);
@@ -138,7 +415,7 @@ void generate_code(Node* node){
             ExpressionStatementNode* expr_statement = (ExpressionStatementNode*)node;
             generate_code(expr_statement->expr);
             if(current_context == CONTEXT_DEFAULT && expr_statement->expr->type != EMPTY_STATEMENT_NODE){
-                fprintf(output_file,";\n");
+                fprintf(output_file,";");
             }
             break;
         }
@@ -189,8 +466,8 @@ void generate_code(Node* node){
             generate_code(decl_list->type_specifier);
             for(int i = 0; i < decl_list->count; i++){
                 generate_code(decl_list->declarators[i]);
-                if(i != decl_list->count - 1 && i != 0){
-                    fprintf(output_file, ", ");
+                if(i != decl_list->count - 1 && decl_list->count != 1){
+                    fprintf(output_file, ",");
                 }
             }
             if (current_context == CONTEXT_DEFAULT) {
@@ -219,9 +496,12 @@ void generate_code(Node* node){
             break;
         }
         case POINTER_NODE: {
+            Context temp = current_context;
+            current_context = CONTEXT_POINTER;
             PointerNode* pointer = (PointerNode*)node;
-            fprintf(output_file, "*");
+            generate_code(pointer->point);
             generate_code(pointer->declarator);
+            current_context = temp;
             break;
         }
         case STRING_LITERAL_NODE: {
