@@ -9,6 +9,7 @@ typedef enum {
     CONTEXT_COMPOUND,
     CONTEXT_FOR,
     CONTEXT_POINTER,
+    CONTEXT_DECLARATORS_LIST,
 } Context;
 
 static int label_counter = 1;
@@ -37,7 +38,7 @@ void generate_code(Node* node){
             fprintf(output_file, "goto %s;\n", end_label);
             fprintf(output_file, "%s:\n", else_label);
             generate_code(if_node->then_statement);
-            fprintf(output_file, "%s:\n", end_label);
+            fprintf(output_file, "%s:", end_label);
             free(else_label);
             free(end_label);
             break;
@@ -200,7 +201,11 @@ void generate_code(Node* node){
             if(su_node->body->type != EMPTY_STATEMENT_NODE){
                 fprintf(output_file, "{\n");
                 generate_code(su_node->body);
-                fprintf(output_file, "}");
+                if(current_context == CONTEXT_DECLARATORS_LIST){
+                    fprintf(output_file, "}");
+                }else{
+                    fprintf(output_file, "};");
+                }
             }
             break;
         }
@@ -245,7 +250,7 @@ void generate_code(Node* node){
             GotoNode* goto_node = (GotoNode*)node;
             fprintf(output_file, "goto ");
             generate_code(goto_node->identifier);
-            fprintf(output_file, ";");
+            fprintf(output_file, ";\n");
             break;
         }
         case INITIALIZERS_LIST_NODE: {
@@ -301,7 +306,7 @@ void generate_code(Node* node){
         case WRAPPER_NODE: {
             WrapperNode* wrapper = (WrapperNode*)node;
             generate_code(wrapper->wrapper);
-            if(current_context == CONTEXT_DEFAULT){
+            if(current_context != CONTEXT_POINTER){
                 fprintf(output_file, " ");
             }
             generate_code(wrapper->inner_node);
@@ -478,7 +483,10 @@ void generate_code(Node* node){
         }
         case DECLARATORS_LIST_NODE: {
             DeclaratorsListNode* decl_list = (DeclaratorsListNode*)node;
+            Context temp = current_context;
+            current_context = CONTEXT_DECLARATORS_LIST;
             generate_code(decl_list->type_specifier);
+            current_context = temp;
             for(int i = 0; i < decl_list->count; i++){
                 generate_code(decl_list->declarators[i]);
                 if(i != decl_list->count - 1 && decl_list->count != 1){

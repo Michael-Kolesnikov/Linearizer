@@ -22,8 +22,8 @@ int is_typedef_name(const char *name) {
 identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 %%
-"/*"                    { comment();  }
-"//".*                  { }
+<*>"/*"                    { comment();  }
+<*>"//".*                  { }
 
 "auto"					{ yylval.str = strdup(yytext); return(AUTO); }
 "break"					{ return(BREAK); }
