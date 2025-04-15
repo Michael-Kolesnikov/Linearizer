@@ -1377,6 +1377,7 @@ void print_grouped_declarator_node(Node* node){
     print_indent();
     printf(COLOR_BLUE "Grouped declarator Node:" COLOR_RESET "\n");
     indent_level++;
+    print_indent();
     printf("Declarator: \n");
     GroupedDeclaratorNode* group = (GroupedDeclaratorNode*)node;
     indent_level++;

@@ -4,12 +4,11 @@
 #include "parser.tab.h"
 #include <stdio.h>
 #include <string.h>
-int lineno = 1;
 static void comment(void);
 extern void yyerror(const char *);
-int in_typedef = 0;
-int brace_level = 0;
-int waiting_for_typedef_names = 0;
+
+int lineno = 1;
+static int typedef_depth = 0;
 
 int is_typedef_name(const char *name) {
     Symbol *s = symtab_lookup(name);
@@ -17,8 +16,11 @@ int is_typedef_name(const char *name) {
 }
 
 %}
-
+%option debug
 %option noyywrap
+%x TYPEDEF_STATE TYPEDEF_DECLARATOR
+identifier [a-zA-Z_][a-zA-Z0-9_]*
+
 %%
 "/*"                    { comment();  }
 "//".*                  { }
@@ -51,10 +53,9 @@ int is_typedef_name(const char *name) {
 "static"				{ yylval.str = strdup(yytext); return(STATIC); }
 "struct"				{ yylval.str = strdup(yytext); return(STRUCT); }
 "switch"				{ return(SWITCH); }
-"typedef" { 
-    in_typedef = 1;
-    brace_level = 0;
-    waiting_for_typedef_names = 0;
+"typedef" {
+    BEGIN(TYPEDEF_STATE);
+    typedef_depth = 0;
     yylval.str = strdup(yytext);
     return(TYPEDEF);
 }
@@ -75,13 +76,8 @@ int is_typedef_name(const char *name) {
 "_Thread_local"         { yylval.str = strdup(yytext); return THREAD_LOCAL; }
 "__func__"              { yylval.str = strdup(yytext); return FUNC_NAME; }
 
-[a-zA-Z_][a-zA-Z0-9_]*    {
+{identifier} {
     yylval.str = strdup(yytext);
-    if (in_typedef && (waiting_for_typedef_names || brace_level == 0)) {
-        symtab_add(yytext, SYM_TYPEDEF, NULL);
-        return TYPEDEF_NAME;
-    }
-
     if (is_typedef_name(yytext)) {
         return TYPEDEF_NAME;
     }
@@ -117,21 +113,12 @@ int is_typedef_name(const char *name) {
 "!="					{ return NE_OP; }
 
 ";" { 
-    waiting_for_typedef_names = 0;
-    in_typedef = 0;
     return(';');
 }
 ("{"|"<%") { 
-    if (in_typedef) brace_level++;
     return('{');
 }
 ("}"|"%>") {
-    if (in_typedef) {
-        brace_level--;
-        if (brace_level == 0) {
-            waiting_for_typedef_names = 1;
-        }
-    }
     return('}');
 }
 ","                     { return(','); }
@@ -156,10 +143,171 @@ int is_typedef_name(const char *name) {
 "|"                     { return('|'); }
 "?"                     { return('?'); }
 
-"\n" { lineno += 1; }
+<*>"\n" { lineno += 1; }
 [ \t\r]+ ;
 . ;
 
+<TYPEDEF_STATE>"const" {
+    yylval.str = strdup(yytext);
+    return CONST;
+}
+
+<TYPEDEF_STATE>"restrict" {
+    yylval.str = strdup(yytext);
+    return RESTRICT;
+}
+
+<TYPEDEF_STATE>"volatile" {
+    yylval.str = strdup(yytext);
+    return VOLATILE;
+}
+
+<TYPEDEF_STATE>"_Atomic" {
+    yylval.str = strdup(yytext);
+    return ATOMIC;
+}
+
+<TYPEDEF_STATE>"struct" {
+    yylval.str = strdup(yytext);
+    return STRUCT;
+}
+
+<TYPEDEF_STATE>"union" {
+    yylval.str = strdup(yytext);
+    return UNION;
+}
+
+<TYPEDEF_STATE>"enum" {
+    yylval.str = strdup(yytext);
+    return ENUM;
+}
+
+<TYPEDEF_STATE>"int" {
+    yylval.str = strdup(yytext);
+    if(typedef_depth == 0){
+        BEGIN(TYPEDEF_DECLARATOR);
+    }
+    return INT;
+}
+
+<TYPEDEF_STATE>"float" {
+    yylval.str = strdup(yytext);
+    if(typedef_depth == 0){
+        BEGIN(TYPEDEF_DECLARATOR);
+    }
+    return FLOAT;
+}
+
+<TYPEDEF_STATE>"char" {
+    yylval.str = strdup(yytext);
+    if(typedef_depth == 0){
+        BEGIN(TYPEDEF_DECLARATOR);
+    }
+    return CHAR;
+}
+
+<TYPEDEF_STATE>"void" {
+    yylval.str = strdup(yytext);
+    if(typedef_depth == 0){
+        BEGIN(TYPEDEF_DECLARATOR);
+    }
+    return VOID;
+}
+
+<TYPEDEF_STATE>"double" {
+    yylval.str = strdup(yytext);
+    if(typedef_depth == 0){
+        BEGIN(TYPEDEF_DECLARATOR);
+    }
+    return DOUBLE;
+}
+
+<TYPEDEF_STATE>"{" {
+    typedef_depth++;
+    return '{';
+}
+
+<TYPEDEF_STATE>"}" {
+    typedef_depth--;
+    if (typedef_depth == 0) {
+        BEGIN(TYPEDEF_DECLARATOR);
+    }
+    return '}';
+}
+
+<TYPEDEF_STATE>{identifier} {
+    yylval.str = strdup(yytext);
+    if (is_typedef_name(yytext)) {
+        return TYPEDEF_NAME;
+    }
+    return IDENTIFIER;
+}
+
+<TYPEDEF_STATE>"*" {
+    return '*';
+}
+
+<TYPEDEF_STATE>"(" {
+    return '(';
+}
+
+<TYPEDEF_STATE>")" {
+    return ')';
+}
+
+<TYPEDEF_STATE>";" {
+    if(typedef_depth == 0){
+        BEGIN(INITIAL);
+    }
+    return ';';
+}
+
+<TYPEDEF_STATE>"," {
+    return ',';
+}
+
+<TYPEDEF_STATE>. {
+}
+
+<TYPEDEF_DECLARATOR>{identifier}  {
+    if (strcmp(yytext, "struct") != 0 && strcmp(yytext, "union") != 0 && 
+        strcmp(yytext, "enum") != 0 && strcmp(yytext, "const") != 0 && 
+        strcmp(yytext, "volatile") != 0 && strcmp(yytext, "static") != 0 && 
+        strcmp(yytext, "extern") != 0 && strcmp(yytext, "inline") != 0 &&
+        strcmp(yytext, "int") != 0 && strcmp(yytext, "float") != 0 &&
+        strcmp(yytext, "char") != 0 && strcmp(yytext, "void") != 0 &&
+        strcmp(yytext, "double") != 0 && strcmp(yytext, "long") != 0 &&
+        strcmp(yytext, "short") != 0 && strcmp(yytext, "signed") != 0 &&
+        strcmp(yytext, "unsigned") != 0) {
+        symtab_add(yytext, SYM_TYPEDEF, NULL);
+    }
+    yylval.str = strdup(yytext);
+    return IDENTIFIER;
+}
+
+<TYPEDEF_DECLARATOR>"," {
+    return (',');
+}
+
+<TYPEDEF_DECLARATOR>";" {
+    BEGIN(INITIAL);
+    return ';';
+}
+
+<TYPEDEF_DECLARATOR>"*" {
+    return '*';
+}
+
+<TYPEDEF_DECLARATOR>"(" {
+    return '(';
+}
+
+<TYPEDEF_DECLARATOR>")" {
+    BEGIN(INITIAL);
+    return ')';
+}
+
+<TYPEDEF_DECLARATOR>.
 %%
 
 static void comment(void)

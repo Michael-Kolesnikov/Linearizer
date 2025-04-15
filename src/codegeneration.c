@@ -135,7 +135,7 @@ void generate_code(Node* node){
             if(enum_node->enumerators_list->type != EMPTY_STATEMENT_NODE){
                 fprintf(output_file, "{\n");
                 generate_code(enum_node->enumerators_list);
-                fprintf(output_file,"\n};");
+                fprintf(output_file,"\n}");
             }
             break;
         }
@@ -185,7 +185,7 @@ void generate_code(Node* node){
             if(su_node->body->type != EMPTY_STATEMENT_NODE){
                 fprintf(output_file, "{\n");
                 generate_code(su_node->body);
-                fprintf(output_file, "};");
+                fprintf(output_file, "}");
             }
             break;
         }

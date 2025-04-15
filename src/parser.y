@@ -672,7 +672,6 @@ int main(int argc, char *argv[]){
     }
 	/* yydebug = 1; */
     yyparse();
-
 	if(root == NULL){
 		printf("ROOT IS NULL\n");
 	}else{
