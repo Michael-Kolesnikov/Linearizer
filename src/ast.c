@@ -540,6 +540,23 @@ Node* create_grouped_declarator_node(Node* declarator){
     return (Node*)node;
 }
 
+Node* create_compound_literals_node(Node* type_name, Node* initializer_list){
+    CompoundLiteralsNode* node = (CompoundLiteralsNode*)malloc(sizeof(CompoundLiteralsNode));
+    node->base.type = COMPOUND_LITERALS_NODE;
+    node->base.print = print_compound_literals_node;
+    node->initializer_list = initializer_list;
+    node->type_name = type_name;
+    return (Node*)node;
+}
+
+Node* create_parenthesized_expression_node(Node* expression){
+    ParenthesizedExpressionNode* node = (ParenthesizedExpressionNode*)malloc(sizeof(ParenthesizedExpressionNode));
+    node->base.type = PARENTHESIZED_EXPRESSION_NODE;
+    node->base.print = print_parenthesized_expression_node;
+    node->expression = expression;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -1382,6 +1399,37 @@ void print_grouped_declarator_node(Node* node){
     GroupedDeclaratorNode* group = (GroupedDeclaratorNode*)node;
     indent_level++;
     group->declarator->print(group->declarator);
+    indent_level--;
+    indent_level--;
+}
+
+void print_compound_literals_node(Node* node){
+    print_indent();
+    printf(COLOR_BLUE "Compound literals Node: " COLOR_RESET "\n");
+    indent_level++;
+    CompoundLiteralsNode* literals =  (CompoundLiteralsNode*)node;
+    print_indent();
+    printf("Initializer list: \n");
+    indent_level++;
+    literals->initializer_list->print(literals->initializer_list);
+    indent_level--;
+    print_indent();
+    printf("Type: \n");
+    indent_level++;
+    literals->type_name->print(literals->type_name);
+    indent_level--;
+    indent_level--;
+}
+
+void print_parenthesized_expression_node(Node* node){
+    ParenthesizedExpressionNode* expr = (ParenthesizedExpressionNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Parenthesized expression Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Expression: \n");
+    indent_level++;
+    expr->expression->print(expr->expression);
     indent_level--;
     indent_level--;
 }

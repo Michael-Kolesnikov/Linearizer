@@ -102,6 +102,21 @@ void generate_code(Node* node){
             current_context = CONTEXT_DEFAULT;
             break;
         }
+        case PARENTHESIZED_EXPRESSION_NODE: {
+            ParenthesizedExpressionNode* expr = (ParenthesizedExpressionNode*)node;
+            fprintf(output_file,"(");
+            generate_code(expr->expression);
+            fprintf(output_file,")");
+            break;
+        }
+        case COMPOUND_LITERALS_NODE: {
+            CompoundLiteralsNode* compo = (CompoundLiteralsNode*)node;
+            fprintf(output_file,"(");
+            generate_code(compo->type_name);
+            fprintf(output_file,")");
+            generate_code(compo->initializer_list);
+            break;
+        }
         case GROUPED_DECLARATOR_NODE: {
             GroupedDeclaratorNode* group_decl = (GroupedDeclaratorNode*)node;
             fprintf(output_file,"(");

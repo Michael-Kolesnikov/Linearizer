@@ -55,7 +55,7 @@ primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
 	| constant { $$ = $1; }
 	| string { $$ = $1; }
-	| '(' expression ')' {$$ = $2;}
+	| '(' expression ')' { $$ = create_parenthesized_expression_node($2); }
 	;
 
 constant
@@ -81,8 +81,8 @@ postfix_expression
 	| postfix_expression POINTER_OP IDENTIFIER { $$ = create_pointer__member_access_expression_node($1,create_identifier_node($3)); }
 	| postfix_expression INCR_OP { $$ = create_postfix_increment_node($1); }
 	| postfix_expression DECR_OP { $$ = create_postfix_decrement_node($1); }
-	| '(' type_name ')' '{' initializer_list '}'
-	| '(' type_name ')' '{' initializer_list ',' '}'
+	| '(' type_name ')' '{' initializer_list '}' { $$ = create_compound_literals_node($2,$5); }
+	| '(' type_name ')' '{' initializer_list ',' '}' { $$ = create_compound_literals_node($2,$5); }
 	;
 
 argument_expression_list

@@ -55,6 +55,8 @@ typedef enum NodeType {
     INITIALIZERS_LIST_NODE,
     DECLARATORS_LIST_NODE,
     GROUPED_DECLARATOR_NODE,
+    COMPOUND_LITERALS_NODE,
+    PARENTHESIZED_EXPRESSION_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -387,6 +389,16 @@ typedef struct {
     Node* declarator;
 } GroupedDeclaratorNode;
 
+typedef struct {
+    Node base;
+    Node* initializer_list;
+    Node* type_name;
+} CompoundLiteralsNode;
+
+typedef struct {
+    Node base;
+    Node* expression;
+} ParenthesizedExpressionNode;
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -442,6 +454,8 @@ Node* create_initializer_node(Node* initializer, Node* desgnation);
 Node* create_initializers_list_node(Node** initializers, int count);
 Node* create_declarators_list_node(Node** declarators, int count);
 Node* create_grouped_declarator_node(Node* declarator);
+Node* create_compound_literals_node(Node* initializer_list, Node* type_name);
+Node* create_parenthesized_expression_node(Node* expression);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -496,4 +510,6 @@ void print_initializer_node(Node* node);
 void print_initializers_list_node(Node* node);
 void print_declarators_list_node(Node* node);
 void print_grouped_declarator_node(Node* node);
+void print_compound_literals_node(Node* node);
+void print_parenthesized_expression_node(Node* node);
 #endif // AST_H
