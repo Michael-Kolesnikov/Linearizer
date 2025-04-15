@@ -419,7 +419,13 @@ type_qualifier_list
 	;
 
 parameter_type_list
-	: parameter_list ',' ELLIPSIS
+	: parameter_list ',' ELLIPSIS {
+		ParametersNode* par_list = (ParametersNode*)$1;
+		Node** new_parameters = (Node**)realloc(par_list->parameters, (par_list->count + 1) * sizeof(Node*));
+		new_parameters[par_list->count] = create_value_node("...");
+		par_list->parameters = new_parameters;
+        par_list->count++;
+	}
 	| parameter_list { $$ = $1; }
 	;
 
