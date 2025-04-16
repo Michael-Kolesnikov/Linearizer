@@ -587,6 +587,23 @@ Node* create_expressions_list_node(Node** expressions, int count){
     node->count = count;
     return (Node*)node;
 }
+
+Node* create_alignof_node(Node* type_name){
+    AlignofNode* node = (AlignofNode*)malloc(sizeof(AlignofNode));
+    node->base.type = ALIGNOF_NODE;
+    node->base.print = print_alignof_node;
+    node->type_name = type_name;
+    return (Node*)node;
+}
+
+Node* create_alignas_node(Node* expr){
+    AlignasNode* node = (AlignasNode*)malloc(sizeof(AlignasNode));
+    node->base.type = ALIGNAS_NODE;
+    node->base.print = print_alignas_node;
+    node->expr = expr;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -1493,5 +1510,31 @@ void print_expressions_list_node(Node* node){
         expressions_list->expressions[i]->print(expressions_list->expressions[i]);
         indent_level--;
     }
+    indent_level--;
+}
+
+void print_alignof_node(Node* node){
+    AlignofNode* alignof_node = (AlignofNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Alignof Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Type name: \n");
+    indent_level++;
+    alignof_node->type_name->print(alignof_node->type_name);
+    indent_level--;
+    indent_level--;
+}
+
+void print_alignas_node(Node* node){
+    AlignasNode* alignas_node = (AlignasNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Alignas Node: " COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Expression: \n");
+    indent_level++;
+    alignas_node->expr->print(alignas_node->expr);
+    indent_level--;
     indent_level--;
 }

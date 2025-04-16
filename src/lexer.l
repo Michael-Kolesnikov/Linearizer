@@ -24,7 +24,8 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 %%
 <*>"/*"                    { comment();  }
 <*>"//".*                  { }
-
+"alignas"               { return(ALIGNAS); }
+"alignof"               { return(ALIGNOF); }
 "auto"					{ yylval.str = strdup(yytext); return(AUTO); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }

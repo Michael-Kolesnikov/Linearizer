@@ -104,6 +104,20 @@ void generate_code(Node* node){
             current_context = CONTEXT_DEFAULT;
             break;
         }
+        case ALIGNAS_NODE: {
+            AlignasNode* alignas = (AlignasNode*)node;
+            fprintf(output_file, "alignas(");
+            generate_code(alignas->expr);
+            fprintf(output_file, ")");
+            break;
+        }
+        case ALIGNOF_NODE: {
+            AlignofNode* alignof = (AlignofNode*)node;
+            fprintf(output_file, "alignof(");
+            generate_code(alignof->type_name);
+            fprintf(output_file, ")");
+            break;
+        }
         case EXPRESSIONS_LIST_NODE: {
             ExpressionsListNode* exprs_list = (ExpressionsListNode*)node;
             for(int i = 0; i < exprs_list->count; i++){

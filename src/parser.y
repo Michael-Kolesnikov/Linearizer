@@ -51,7 +51,7 @@
 %type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
 %type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration storage_class_specifier
 %type <node> type_qualifier function_specifier declaration_specifiers enum_specifier enumeration_constant enumerator enumerator_list designation designator_list
-%type <node> initializer_list type_qualifier_list pointer direct_abstract_declarator static_assert_declaration
+%type <node> initializer_list type_qualifier_list pointer direct_abstract_declarator static_assert_declaration alignment_specifier
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -113,6 +113,9 @@ unary_expression
 	| unary_operator cast_expression { $$ = create_unary_operator_expression_node($1, $2); }
 	| SIZEOF unary_expression { $$ = create_sizeof_node($2); }
 	| SIZEOF '(' type_name ')' { $$ = create_sizeof_node($3); }
+	| ALIGNOF unary_expression { $$ = create_alignof_node($2); }
+	| ALIGNOF '(' type_name ')' { $$ = create_alignof_node($3); }
+	
 	;
 
 unary_operator
@@ -254,6 +257,8 @@ declaration_specifiers
 	| type_qualifier { $$ = $1; }
 	| function_specifier declaration_specifiers { $$ = create_wrapper_node($1, $2); }
 	| function_specifier { $$ = $1; }
+	| alignment_specifier declaration_specifiers { $$ = create_wrapper_node($1, $2); }
+	| alignment_specifier { $$ = $1; }
     ;
 
 init_declarator_list
@@ -339,6 +344,12 @@ struct_declaration
 		$$ = $2;
 	}
 	| static_assert_declaration { $$ = $1; }
+	| alignment_specifier specifier_qualifier_list ';' { $$ = create_wrapper_node($1, $2); }
+    | alignment_specifier specifier_qualifier_list struct_declarator_list ';' {
+		((DeclaratorsListNode*)$3)->type_specifier = create_wrapper_node($1, $2);
+		$$ = $3;
+	}
+    ;
 	;
 
 specifier_qualifier_list
@@ -412,6 +423,11 @@ type_qualifier
 function_specifier
 	: INLINE { $$ = create_value_node($1); }
 	| NORETURN { $$ = create_value_node($1); }
+	;
+
+alignment_specifier
+	: ALIGNAS '(' type_name ')' { $$ = create_alignas_node($3); }
+	| ALIGNAS '(' constant_expression ')' { $$ = create_alignas_node($3); }
 	;
 
 declarator

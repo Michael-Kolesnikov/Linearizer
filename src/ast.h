@@ -59,6 +59,8 @@ typedef enum NodeType {
     PARENTHESIZED_EXPRESSION_NODE,
     STATIC_ASSERT_NODE,
     EXPRESSIONS_LIST_NODE,
+    ALIGNOF_NODE,
+    ALIGNAS_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -413,6 +415,17 @@ typedef struct {
     Node** expressions;
     int count;
 } ExpressionsListNode;
+
+typedef struct {
+    Node base;
+    Node* type_name;
+} AlignofNode;
+
+typedef struct {
+    Node base;
+    Node* expr;
+} AlignasNode;
+
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -473,6 +486,8 @@ Node* create_compound_literals_node(Node* initializer_list, Node* type_name);
 Node* create_parenthesized_expression_node(Node* expression);
 Node* create_static_assert_node(Node* expr, Node* message);
 Node* create_expressions_list_node(Node** expressions, int count);
+Node* create_alignof_node(Node* type_name);
+Node* create_alignas_node(Node* expr);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -531,4 +546,6 @@ void print_compound_literals_node(Node* node);
 void print_parenthesized_expression_node(Node* node);
 void print_static_assert_node(Node* node);
 void print_expressions_list_node(Node* node);
+void print_alignof_node(Node* node);
+void print_alignas_node(Node* node);
 #endif // AST_H
