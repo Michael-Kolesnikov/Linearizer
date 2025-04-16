@@ -304,7 +304,6 @@ typedef struct {
 
 typedef struct {
     Node base;
-    Node* type;
     Node* declarator;
     Node* bit_width;
 } StructDeclaratorNode;

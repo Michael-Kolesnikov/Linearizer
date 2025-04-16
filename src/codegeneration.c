@@ -10,6 +10,7 @@ typedef enum {
     CONTEXT_FOR,
     CONTEXT_POINTER,
     CONTEXT_DECLARATORS_LIST,
+    CONTEXT_ARRAY_INDEX,
 } Context;
 
 static int label_counter = 1;
@@ -212,21 +213,22 @@ void generate_code(Node* node){
         case STRUCT_DECLARATIONS_LIST_NODE: {
             StructDeclarationsListNode* list = (StructDeclarationsListNode*)node;
             for(int i = 0; i < list->count; i++){
+                Context temp = current_context;
+                current_context = CONTEXT_DEFAULT;
                 generate_code(list->declarations_list[i]);
+                current_context = temp;
                 fprintf(output_file, "\n");
             }
             break;
         }
         case STRUCT_DECLARATOR_NODE: {
             StructDeclaratorNode* declarator = (StructDeclaratorNode*)node;
-            generate_code(declarator->type);
             fprintf(output_file, " ");
             generate_code(declarator->declarator);
             if(declarator->bit_width->type != EMPTY_STATEMENT_NODE){
                 fprintf(output_file, " : ");
                 generate_code(declarator->bit_width);
             }
-            fprintf(output_file, ";");
             break;
         }
         case LABELED_STATEMENT_NODE: {
@@ -372,7 +374,10 @@ void generate_code(Node* node){
             ArrayDeclarationNode* array_node = (ArrayDeclarationNode*)node;
             generate_code(array_node->declarator);
             fprintf(output_file,"[");
+            Context temp = current_context;
+            current_context = CONTEXT_ARRAY_INDEX;
             generate_code(array_node->index_expression);
+            current_context = temp;
             fprintf(output_file,"]");
             break;
         }

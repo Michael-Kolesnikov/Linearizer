@@ -316,8 +316,7 @@ struct_declaration_list
 struct_declaration
 	: specifier_qualifier_list ';' { $$ = $1; }
 	| specifier_qualifier_list struct_declarator_list ';' {
-		StructDeclaratorNode* node = (StructDeclaratorNode*)$2;
-		node->type = $1;
+		((DeclaratorsListNode*)$2)->type_specifier = $1;
 		$$ = $2;
 	}
 	| static_assert_declaration
@@ -331,8 +330,20 @@ specifier_qualifier_list
 	;
 
 struct_declarator_list
-	: struct_declarator { $$ = $1; }
-	| struct_declarator_list ',' struct_declarator 
+	: struct_declarator {
+		Node** declarators = (Node**)malloc(1 * sizeof(Node*));
+		declarators[0] = $1;
+		Node* decl_list = create_declarators_list_node(declarators, 1);
+		$$ = (Node*)decl_list;
+	}
+	| struct_declarator_list ',' struct_declarator {
+		DeclaratorsListNode* prev_node = (DeclaratorsListNode*)$1;
+		Node** new_declarators = (Node**)realloc(prev_node->declarators, (prev_node->count + 1) * sizeof(Node*));
+		new_declarators[prev_node->count] = $3;
+        prev_node->declarators = new_declarators;
+        prev_node->count++;
+        $$ = $1;
+	}
 	;
 
 struct_declarator
@@ -394,22 +405,22 @@ direct_declarator
 	| '(' declarator ')' { $$ = create_grouped_declarator_node($2); }
 	| direct_declarator '[' ']' { $$ = create_array_declaration_node($1,create_empty_statement_node()); }
 	| direct_declarator '[' '*' ']' { $$ = create_array_declaration_node($1,create_value_node("*"));}
-	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-	| direct_declarator '[' STATIC assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list '*' ']'
-	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-	| direct_declarator '[' type_qualifier_list assignment_expression ']' { $$ = create_array_declaration_node($1,create_wrapper_node($3,$4)); }
+	| direct_declarator '[' STATIC type_qualifier_list assignment_expression ']' { $$ = create_array_declaration_node($1, create_wrapper_node(create_value_node($3), create_wrapper_node($4, $5))); }
+	| direct_declarator '[' STATIC assignment_expression ']' { $$ = create_array_declaration_node($1, create_wrapper_node(create_value_node($3), $4));}
+	| direct_declarator '[' type_qualifier_list '*' ']' { $$ = create_array_declaration_node($1, create_wrapper_node($3, create_value_node("*"))); }
+	| direct_declarator '[' type_qualifier_list STATIC assignment_expression ']' { $$ = create_array_declaration_node($1, create_wrapper_node($3, create_wrapper_node(create_value_node($4), $5))); }
+	| direct_declarator '[' type_qualifier_list assignment_expression ']' { $$ = create_array_declaration_node($1, create_wrapper_node($3, $4)); }
 	| direct_declarator '[' type_qualifier_list ']' { $$ = create_array_declaration_node($1, $3); }
-	| direct_declarator '[' assignment_expression ']' { $$ = create_array_declaration_node($1,$3); }
+	| direct_declarator '[' assignment_expression ']' { $$ = create_array_declaration_node($1, $3); }
     | direct_declarator '(' parameter_type_list ')' { $$ = create_function_declarator_node($1, $3); }
 	| direct_declarator '(' ')' { $$ = create_function_declarator_node($1, create_empty_statement_node()); }
 	;
 
 pointer
-    : '*' type_qualifier_list pointer
-	| '*' type_qualifier_list { $$ = $2; }
-	| '*' pointer { $$ = create_wrapper_node(create_value_node("*"),$2); /*create_pointer_node(create_empty_statement_node(), $2);*/ }
-	| '*' { $$ = create_wrapper_node(create_value_node("*"),create_empty_statement_node());}
+    : '*' type_qualifier_list pointer { $$ = create_wrapper_node(create_value_node("*"), create_wrapper_node($2, $3)); }
+	| '*' type_qualifier_list { $$ = create_wrapper_node(create_value_node("*"), $2); }
+	| '*' pointer { $$ = create_wrapper_node(create_value_node("*"),$2); }
+	| '*' { $$ = create_value_node("*"); }
 	;
 
 
@@ -471,25 +482,25 @@ abstract_declarator
 	;
 
 direct_abstract_declarator
-	: '(' abstract_declarator ')' { $$ = $2; }
+	: '(' abstract_declarator ')' { $$ = create_grouped_declarator_node($2); }
 	| '[' ']' { $$ = create_array_declaration_node(create_empty_statement_node(),create_empty_statement_node()); }
-	| '[' '*' ']'
-	| '[' STATIC type_qualifier_list assignment_expression ']'
-	| '[' STATIC assignment_expression ']'
-	| '[' type_qualifier_list STATIC assignment_expression ']'
-	| '[' type_qualifier_list assignment_expression ']'
-	| '[' type_qualifier_list ']'
-	| '[' assignment_expression ']'
-	| direct_abstract_declarator '[' ']'
-	| direct_abstract_declarator '[' '*' ']'
-	| direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-	| direct_abstract_declarator '[' STATIC assignment_expression ']'
-	| direct_abstract_declarator '[' type_qualifier_list assignment_expression ']'
-	| direct_abstract_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-	| direct_abstract_declarator '[' type_qualifier_list ']'
-	| direct_abstract_declarator '[' assignment_expression ']'
-	| '(' ')'
-	| '(' parameter_type_list ')'
+	| '[' '*' ']' { $$ = create_array_declaration_node(create_empty_statement_node(), create_value_node("*") ); }
+	| '[' STATIC type_qualifier_list assignment_expression ']' { $$ = create_array_declaration_node(create_empty_statement_node(), create_wrapper_node(create_value_node($2), create_wrapper_node($3, $4))); }
+	| '[' STATIC assignment_expression ']' { $$ = create_array_declaration_node(create_empty_statement_node(), create_wrapper_node(create_value_node($2), $3) ); }
+	| '[' type_qualifier_list STATIC assignment_expression ']' { $$ = create_array_declaration_node(create_empty_statement_node(), create_wrapper_node($2, create_wrapper_node(create_value_node($3), $4))); }
+	| '[' type_qualifier_list assignment_expression ']' { $$ = create_array_declaration_node(create_empty_statement_node(), create_wrapper_node($2, $3)); }
+	| '[' type_qualifier_list ']' { $$ = create_array_declaration_node(create_empty_statement_node(), $2); }
+	| '[' assignment_expression ']' { $$ = create_array_declaration_node(create_empty_statement_node(), $2); }
+	| direct_abstract_declarator '[' ']' { $$ = create_array_declaration_node($1, create_empty_statement_node()); }
+	| direct_abstract_declarator '[' '*' ']' { $$ = create_array_declaration_node($1, create_value_node("*")); }
+	| direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']' { $$ = create_array_declaration_node($1, create_wrapper_node(create_value_node($3), create_wrapper_node($4, $5))); }
+	| direct_abstract_declarator '[' STATIC assignment_expression ']' { $$ = create_array_declaration_node($1, create_wrapper_node(create_value_node($3), $4)); }
+	| direct_abstract_declarator '[' type_qualifier_list assignment_expression ']' { $$ = create_array_declaration_node($1, create_wrapper_node($3, $4)); }
+	| direct_abstract_declarator '[' type_qualifier_list STATIC assignment_expression ']' { $$ = create_array_declaration_node($1, create_wrapper_node($3,create_wrapper_node(create_value_node($4), $5))); }
+	| direct_abstract_declarator '[' type_qualifier_list ']' { $$ = create_array_declaration_node($1, $3); }
+	| direct_abstract_declarator '[' assignment_expression ']' { $$ = create_array_declaration_node($1, $3); }
+	| '(' ')' { $$ = create_function_declarator_node(create_empty_statement_node(), create_empty_statement_node()); }
+	| '(' parameter_type_list ')' { $$ = create_function_declarator_node(create_empty_statement_node(), $2); }
 	| direct_abstract_declarator '(' ')' { $$ = create_function_declarator_node($1, create_empty_statement_node()); }
 	| direct_abstract_declarator '(' parameter_type_list ')' { $$ = create_function_declarator_node($1, $3); }
 	;

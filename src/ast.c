@@ -1163,11 +1163,6 @@ void print_struct_declarator_node(Node* node){
     print_indent();
     printf(COLOR_BLUE "Struct declarator Node" COLOR_RESET "\n");
     indent_level++;
-    print_indent();
-    printf("Type: \n");
-    indent_level++;
-    dec_node->type->print(dec_node->type);
-    indent_level--;
     if(dec_node->declarator->type != EMPTY_STATEMENT_NODE){
         print_indent();
         printf("Declarator: \n");
