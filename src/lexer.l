@@ -84,10 +84,10 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     symtab_add(yytext, SYM_IDENTIFIER, NULL);
     return IDENTIFIER;
 }
-"0"|[0-9]+              { yylval.ival = atoi(yytext); return I_CONST; }
-[0-9]+\.[0-9]+          { yylval.fval = atof(yytext); return F_CONST; }
+<*>"0"|[0-9]+              { yylval.ival = atoi(yytext); return I_CONST; }
+<*>[0-9]+\.[0-9]+          { yylval.fval = atof(yytext); return F_CONST; }
 
-((u8|u|U|L)?\"([^"\\\n]|(\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+)))*\"[ \t\v\n\f]*)+         { yylval.str = strdup(yytext); return STRING; }
+<*>((u8|u|U|L)?\"([^"\\\n]|(\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+)))*\"[ \t\v\n\f]*)+         { yylval.str = strdup(yytext); return STRING; }
 
 "..."					{ return ELLIPSIS; }
 ">>="					{ return RIGHT_ASSIGN; }
@@ -122,7 +122,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     return('}');
 }
 ","                     { return(','); }
-":"                     { return(':'); }
+<*>":"                     { return(':'); }
 "="                     { return('='); }
 "("                     { return('('); }
 ")"                     { return(')'); }
