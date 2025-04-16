@@ -57,6 +57,7 @@ typedef enum NodeType {
     GROUPED_DECLARATOR_NODE,
     COMPOUND_LITERALS_NODE,
     PARENTHESIZED_EXPRESSION_NODE,
+    STATIC_ASSERT_NODE,
 } NodeType;
 
 typedef struct Node{
@@ -350,7 +351,6 @@ typedef struct {
 
 } MemberDesignatorNode;
 
-
 typedef struct {
     Node base;
     Node* expression;
@@ -398,6 +398,13 @@ typedef struct {
     Node base;
     Node* expression;
 } ParenthesizedExpressionNode;
+
+typedef struct {
+    Node base;
+    Node* expr;
+    Node* message;
+} StaticAssertNode;
+
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
@@ -455,6 +462,7 @@ Node* create_declarators_list_node(Node** declarators, int count);
 Node* create_grouped_declarator_node(Node* declarator);
 Node* create_compound_literals_node(Node* initializer_list, Node* type_name);
 Node* create_parenthesized_expression_node(Node* expression);
+Node* create_static_assert_node(Node* expr, Node* message);
 void print_identifier_node(Node* node);
 void print_const_node(Node* node);
 void print_binary_operation_node(Node* node);
@@ -511,4 +519,5 @@ void print_declarators_list_node(Node* node);
 void print_grouped_declarator_node(Node* node);
 void print_compound_literals_node(Node* node);
 void print_parenthesized_expression_node(Node* node);
+void print_static_assert_node(Node* node);
 #endif // AST_H

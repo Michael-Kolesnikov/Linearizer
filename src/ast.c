@@ -557,6 +557,15 @@ Node* create_parenthesized_expression_node(Node* expression){
     return (Node*)node;
 }
 
+Node* create_static_assert_node(Node* expr, Node* message){
+    StaticAssertNode* node = (StaticAssertNode*)malloc(sizeof(StaticAssertNode));
+    node->base.type = STATIC_ASSERT_NODE;
+    node->base.print = print_static_assert_node;
+    node->expr = expr;
+    node->message = message;
+    return (Node*)node;
+}
+
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -1426,5 +1435,25 @@ void print_parenthesized_expression_node(Node* node){
     indent_level++;
     expr->expression->print(expr->expression);
     indent_level--;
+    indent_level--;
+}
+
+void print_static_assert_node(Node* node){
+    StaticAssertNode* static_assert_node = (StaticAssertNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Static assert Node:" COLOR_RESET "\n");
+    indent_level++;
+    print_indent();
+    printf("Expr: \n");
+    indent_level++;
+    static_assert_node->expr->print(static_assert_node->expr);
+    indent_level--;
+    if(static_assert_node->message->type != EMPTY_STATEMENT_NODE){
+        print_indent();
+        printf("Message: \n");
+        indent_level++;
+        static_assert_node->message->print(static_assert_node->message);
+        indent_level--;
+    }
     indent_level--;
 }

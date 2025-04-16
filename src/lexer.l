@@ -51,6 +51,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 "signed"				{ yylval.str = strdup(yytext); return(SIGNED); }
 "sizeof"				{ return(SIZEOF); }
 "static"				{ yylval.str = strdup(yytext); return(STATIC); }
+"static_assert"         { yylval.str = strdup(yytext); return(STATIC_ASSERT); }
 "struct"				{ yylval.str = strdup(yytext); return(STRUCT); }
 "switch"				{ return(SWITCH); }
 "typedef" {

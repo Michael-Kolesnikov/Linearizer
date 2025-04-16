@@ -49,7 +49,7 @@
 %type <node> parameter_list parameter_declaration parameter_type_list argument_expression_list specifier_qualifier_list type_name type_specifiers
 %type <node> struct_or_union struct_or_union_specifier struct_declaration_list struct_declarator_list struct_declarator struct_declaration storage_class_specifier
 %type <node> type_qualifier function_specifier declaration_specifiers enum_specifier enumeration_constant enumerator enumerator_list designation designator_list
-%type <node> initializer_list type_qualifier_list pointer direct_abstract_declarator
+%type <node> initializer_list type_qualifier_list pointer direct_abstract_declarator static_assert_declaration
 %%
 primary_expression
 	: IDENTIFIER { $$ = create_identifier_node($1); }
@@ -224,6 +224,7 @@ declaration
 		node->type_specifier = $1;
 		$$ = $2;
 		}
+	| static_assert_declaration { $$ = $1; }
     ;
 
 declaration_specifiers
@@ -319,7 +320,7 @@ struct_declaration
 		((DeclaratorsListNode*)$2)->type_specifier = $1;
 		$$ = $2;
 	}
-	| static_assert_declaration
+	| static_assert_declaration { $$ = $1; }
 	;
 
 specifier_qualifier_list
@@ -570,7 +571,8 @@ designator
 	;
 
 static_assert_declaration
-	: STATIC_ASSERT '(' constant_expression ',' STRING ')' ';'
+	: STATIC_ASSERT '(' constant_expression ',' STRING ')' ';' { $$ = create_static_assert_node($3 ,create_value_node($5)); }
+	| STATIC_ASSERT '(' constant_expression ')' ';' { $$ = create_static_assert_node($3 , create_empty_statement_node()); }
 	;
 
 statement

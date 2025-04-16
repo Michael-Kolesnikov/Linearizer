@@ -104,6 +104,17 @@ void generate_code(Node* node){
             current_context = CONTEXT_DEFAULT;
             break;
         }
+        case STATIC_ASSERT_NODE: {
+            StaticAssertNode* static_assert = (StaticAssertNode*)node;
+            fprintf(output_file, "static_assert(");
+            generate_code(static_assert->expr);
+            if(static_assert->message->type != EMPTY_STATEMENT_NODE){
+                fprintf(output_file, ", ");
+                generate_code(static_assert->message);
+            }
+            fprintf(output_file, ");");
+            break;
+        }
         case PARENTHESIZED_EXPRESSION_NODE: {
             ParenthesizedExpressionNode* expr = (ParenthesizedExpressionNode*)node;
             fprintf(output_file,"(");
