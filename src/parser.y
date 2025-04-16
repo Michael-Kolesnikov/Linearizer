@@ -30,6 +30,7 @@
 	char* str;
 	int ival;
 	double fval;
+	char cval;
 	struct {
         struct ASTNode *node1;
         struct ASTNode *node2;
@@ -39,6 +40,7 @@
 %token <str> TYPEDEF EXTERN STATIC THREAD_LOCAL AUTO REGISTER CONST RESTRICT ATOMIC VOLATILE INLINE NORETURN FUNC_NAME
 %token <fval> F_CONST
 %token <ival> I_CONST
+%token <cval> C_CONST
 %type <str> assignment_operator unary_operator
 %type <node> primary_expression direct_declarator declarator constant designator
 %type <node> additive_expression multiplicative_expression cast_expression unary_expression postfix_expression shift_expression relational_expression equality_expression
@@ -61,6 +63,7 @@ primary_expression
 constant
 	: I_CONST { $$ = create_constant_int_node($1); }
 	| F_CONST { $$ = create_constant_float_node($1); }
+	| C_CONST { $$ = create_constant_char_node($1); }
 	;
 
 enumeration_constant

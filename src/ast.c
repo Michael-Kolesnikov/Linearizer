@@ -54,6 +54,19 @@ Node* create_constant_float_node(float value){
     return (Node*)node;
 }
 
+Node* create_constant_char_node(char value){
+    ConstantNode* node = (ConstantNode*)malloc(sizeof(ConstantNode));
+    if (!node) {
+        fprintf(stderr, "Error: Failed to allocate memory for ConstantNode\n");
+        exit(1);
+    }
+    node->base.type = CONSTANT_NODE;
+    node->const_type = CONST_CHAR;
+    node->value.c_value = value;
+    node->base.print = print_const_node;
+    return (Node*)node;
+}
+
 Node* create_binary_operation_node(char* op, Node* left, Node* right) {
     BinaryOperationNode* node = (BinaryOperationNode*)malloc(sizeof(BinaryOperationNode));
     if (!node) {
@@ -579,7 +592,9 @@ void print_const_node(Node* node){
         printf(COLOR_BLUE "Constant (int) Node: " COLOR_GREEN "%d\n" COLOR_RESET, const_node->value.i_value);
     } else if (const_node->const_type == CONST_FLOAT) {
         printf(COLOR_BLUE "Constant (float) Node: " COLOR_GREEN " %f\n" COLOR_RESET, const_node->value.f_value);
-    } else {
+    } else if (const_node->const_type == CONST_CHAR){
+        printf(COLOR_BLUE "Constant (char) Node: " COLOR_GREEN " %c\n" COLOR_RESET, const_node->value.c_value);        
+    }else {
         printf(COLOR_RED "Constant: Unknown type" COLOR_RESET "\n");
     }
 }

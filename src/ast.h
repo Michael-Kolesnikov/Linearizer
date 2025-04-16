@@ -74,11 +74,13 @@ typedef struct ConstantNode{
     Node base;
     enum {
         CONST_INT,
-        CONST_FLOAT
+        CONST_FLOAT,
+        CONST_CHAR,
     } const_type;
     union{
         int i_value;
         float f_value;
+        char c_value;
     } value;
 } ConstantNode;
 
@@ -408,6 +410,7 @@ typedef struct {
 Node *create_identifier_node(char* name);
 Node *create_constant_int_node(int value);
 Node *create_constant_float_node(float value);
+Node *create_constant_char_node(char value);
 Node *create_binary_operation_node(char* op, Node* left, Node* right);
 Node *create_declaration_node(Node* identifier, Node* initializer);
 Node* create_assignment_node(Node* left, char* op, Node* right);

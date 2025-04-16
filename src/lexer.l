@@ -16,7 +16,7 @@ int is_typedef_name(const char *name) {
 }
 
 %}
-%option debug
+
 %option noyywrap
 %x TYPEDEF_STATE TYPEDEF_DECLARATOR
 identifier [a-zA-Z_][a-zA-Z0-9_]*
@@ -87,7 +87,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 <*>"0"|[0-9]+              { yylval.ival = atoi(yytext); return I_CONST; }
 <*>[0-9]+\.[0-9]+          { yylval.fval = atof(yytext); return F_CONST; }
-
+(u|U|L)?"'"([^'\\\n]|(\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+)))+"'" { yylval.cval = yytext[1]; return C_CONST; }
 <*>((u8|u|U|L)?\"([^"\\\n]|(\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+)))*\"[ \t\v\n\f]*)+         { yylval.str = strdup(yytext); return STRING; }
 
 "..."					{ return ELLIPSIS; }

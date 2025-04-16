@@ -551,8 +551,10 @@ void generate_code(Node* node){
             ConstantNode* constant = (ConstantNode*)node;
             if(constant->const_type == CONST_INT){
                 fprintf(output_file,"%d",constant->value.i_value);
-            }else if(constant->const_type == CONST_FLOAT){
+            } else if(constant->const_type == CONST_FLOAT){
                 fprintf(output_file,"%f",constant->value.f_value);
+            } else if(constant->const_type == CONST_CHAR){
+                fprintf(output_file,"'%c'",constant->value.c_value);
             }
             break;
         }
