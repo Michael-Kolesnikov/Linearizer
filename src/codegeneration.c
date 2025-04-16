@@ -104,6 +104,16 @@ void generate_code(Node* node){
             current_context = CONTEXT_DEFAULT;
             break;
         }
+        case EXPRESSIONS_LIST_NODE: {
+            ExpressionsListNode* exprs_list = (ExpressionsListNode*)node;
+            for(int i = 0; i < exprs_list->count; i++){
+                generate_code(exprs_list->expressions[i]);
+                if(exprs_list->count != 1 && i != exprs_list->count - 1){
+                    fprintf(output_file, ", ");
+                }
+            }
+            break;
+        }
         case STATIC_ASSERT_NODE: {
             StaticAssertNode* static_assert = (StaticAssertNode*)node;
             fprintf(output_file, "static_assert(");

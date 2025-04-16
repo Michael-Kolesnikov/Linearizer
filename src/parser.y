@@ -213,7 +213,22 @@ assignment_operator
 
 expression
 	: assignment_expression { $$ = $1; }
-	| expression ',' assignment_expression
+	| expression ',' assignment_expression {
+		printf("\n\n\n%d\n\n\n",$1->type);
+		if($1->type != EXPRESSIONS_LIST_NODE){
+			Node** exprs = (Node**)malloc(2 * sizeof(Node*));
+			exprs[0] = $1;
+			exprs[1] = $3;
+			$$ = create_expressions_list_node(exprs, 2);
+		}else{
+			ExpressionsListNode* prev_node = (ExpressionsListNode*)$1;
+			Node** new_exprs = (Node**)realloc(prev_node->expressions, (prev_node->count + 1) * sizeof(Node*));
+			new_exprs[prev_node->count] = $3;
+        	prev_node->expressions = new_exprs;
+        	prev_node->count++;
+        	$$ = $1;
+		}
+	}
 	;
 
 constant_expression

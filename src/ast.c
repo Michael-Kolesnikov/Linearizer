@@ -579,6 +579,14 @@ Node* create_static_assert_node(Node* expr, Node* message){
     return (Node*)node;
 }
 
+Node* create_expressions_list_node(Node** expressions, int count){
+    ExpressionsListNode* node = (ExpressionsListNode*)malloc(sizeof(ExpressionsListNode));
+    node->base.type = EXPRESSIONS_LIST_NODE;
+    node->base.print = print_expressions_list_node;
+    node->expressions = expressions;
+    node->count = count;
+    return (Node*)node;
+}
 void print_identifier_node(Node* node){
     IdentifierNode* id_node = (IdentifierNode*)node;
     print_indent();
@@ -1468,6 +1476,21 @@ void print_static_assert_node(Node* node){
         printf("Message: \n");
         indent_level++;
         static_assert_node->message->print(static_assert_node->message);
+        indent_level--;
+    }
+    indent_level--;
+}
+
+void print_expressions_list_node(Node* node){
+    ExpressionsListNode* expressions_list = (ExpressionsListNode*)node;
+    print_indent();
+    printf(COLOR_BLUE "Expressions list Node:" COLOR_RESET "\n");
+    indent_level++;
+    for(int i = 0; i < expressions_list->count; i++){
+        print_indent();
+        printf("expression[%d]: \n",i);
+        indent_level++;
+        expressions_list->expressions[i]->print(expressions_list->expressions[i]);
         indent_level--;
     }
     indent_level--;
