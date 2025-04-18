@@ -15,6 +15,7 @@ typedef struct {
 void symtab_init();
 void symtab_free();
 void symtab_add(const char *name, SymbolType type, const char *datatype);
+void symtab_set_type(const char* name, const char* datatype);
 Symbol *symtab_lookup(const char *name);
 void symtab_print();
 

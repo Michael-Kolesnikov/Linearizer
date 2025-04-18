@@ -548,4 +548,5 @@ void print_static_assert_node(Node* node);
 void print_expressions_list_node(Node* node);
 void print_alignof_node(Node* node);
 void print_alignas_node(Node* node);
+char* get_declarator_name(Node* node);
 #endif // AST_H

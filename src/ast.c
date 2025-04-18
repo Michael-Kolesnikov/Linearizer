@@ -1538,3 +1538,30 @@ void print_alignas_node(Node* node){
     indent_level--;
     indent_level--;
 }
+
+char* get_declarator_name(Node* node){
+    if(node == NULL) return NULL;
+    switch(node->type){
+        case IDENTIFIER_NODE: {
+            return ((IdentifierNode*)node)->name;
+        }
+        case DECLARATION_NODE: {
+            return get_declarator_name(((DeclarationNode*)node)->identifier);
+        }
+        case POINTER_NODE: {
+            return get_declarator_name(((PointerNode*)node)->declarator);
+        }
+        case ARRAY_DECLARATION_NODE: {
+            return get_declarator_name(((ArrayDeclarationNode*)node)->declarator);
+        }
+        case GROUPED_DECLARATOR_NODE: {
+            return get_declarator_name(((GroupedDeclaratorNode*)node)->declarator);
+        }
+        case FUNCTION_DECLARATOR_NODE: {
+            return get_declarator_name(((FunctionDeclaratorNode*)node)->declarator);
+        }
+        default:
+            return NULL;
+            break;
+    }
+}

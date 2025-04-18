@@ -20,6 +20,11 @@ void symtab_free() {
     }
 }
 
+void symtab_set_type(const char* name, const char* datatype){
+    Symbol *s = symtab_lookup(name);
+    if(s) s->datatype = strdup(datatype);
+}
+
 void symtab_add(const char *name, SymbolType type, const char *datatype) {
     if (symtab_lookup(name)) return; // avoid duplicates
     if (symbol_count >= MAX_SYMBOLS) return;

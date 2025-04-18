@@ -3,7 +3,7 @@
 	#include <stdlib.h>
 	#include <string.h>
 	#include "ast.h"
-	
+	#include "symbolTable.h"
 
     extern FILE *yyin;
     extern FILE *yyout;
@@ -78,8 +78,18 @@ string
 postfix_expression
 	: primary_expression { $$ = $1; }
 	| postfix_expression '[' expression ']' { $$ = create_array_expression_node($1, $3); }
-	| postfix_expression '(' ')' { $$ = create_function_call_node($1, create_empty_statement_node()); }
-	| postfix_expression '(' argument_expression_list ')' { $$ = create_function_call_node($1, $3); }
+	| postfix_expression '(' ')' {
+		$$ = create_function_call_node($1, create_empty_statement_node());
+		char* type = "function";
+		char* ident = get_declarator_name($1);
+		symtab_set_type(ident, type);
+	}
+	| postfix_expression '(' argument_expression_list ')' {
+		$$ = create_function_call_node($1, $3);
+		char* type = "function";
+		char* ident = get_declarator_name($1);
+		symtab_set_type(ident, type);	
+	}
 	| postfix_expression '.' IDENTIFIER { $$ = create_member_access_expression_node($1, create_identifier_node($3)); }
 	| postfix_expression POINTER_OP IDENTIFIER { $$ = create_pointer__member_access_expression_node($1,create_identifier_node($3)); }
 	| postfix_expression INCR_OP { $$ = create_postfix_increment_node($1); }
@@ -244,6 +254,12 @@ declaration
 		DeclaratorsListNode* node = (DeclaratorsListNode*)$2;
 		node->type_specifier = $1;
 		$$ = $2;
+		for(int i = 0; i < node->count; i++){
+			char* ident = get_declarator_name(node->declarators[i]);
+			char* type = ((ValueNode*)$1)->value;
+			printf("ident: %s, type: %s\n", ident, type);
+			symtab_set_type(ident, type);
+		}
 		}
 	| static_assert_declaration { $$ = $1; }
     ;
@@ -694,7 +710,12 @@ external_declaration
 	;
 
 function_definition
-    : declaration_specifiers declarator compound_statement { $$ = create_function_declaration_node($1,$2,$3); }
+    : declaration_specifiers declarator compound_statement {
+		$$ = create_function_declaration_node($1,$2,$3);
+		char* type = "function";
+		char* ident = get_declarator_name($2);
+		symtab_set_type(ident, type);
+	}
     ;
 
 %%
@@ -728,6 +749,7 @@ int main(int argc, char *argv[]){
 	if(root == NULL){
 		printf("ROOT IS NULL\n");
 	}else{
+		symtab_print();
     	root->print(root);
 		generate_code_from_ast(root,yyout);
 	}
