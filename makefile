@@ -68,8 +68,8 @@ $(SYMTAB_O): $(SYMTAB_FILE)
 	$(CC) $(CFLAGS) -c $(SYMTAB_FILE) -o $(SYMTAB_O)
 
 # Rule to build unit tests
-unit_tests: $(TEST_OBJ) $(AST_O) $(CODEGEN_O)
-	$(CC) -o $(TEST_DIR)/unit_tests $(TEST_OBJ) $(AST_O) $(CODEGEN_O) $(TEST_CFLAGS)
+unit_tests: $(TEST_OBJ) $(AST_O) $(CODEGEN_O) $(SYMTAB_O)
+	$(CC) -o $(TEST_DIR)/unit_tests $(TEST_OBJ) $(AST_O) $(CODEGEN_O) $(SYMTAB_O) $(TEST_CFLAGS)
 	./$(TEST_DIR)/unit_tests
 
 # Rule to compile test source files into object files

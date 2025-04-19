@@ -66,6 +66,8 @@ typedef enum NodeType {
 typedef struct Node{
     NodeType type;
     void (*print)(struct Node*);
+    int is_temp;
+    int already_linearized;
 } Node;
 
 typedef struct IdentifierNode{

@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "src/ast.h"
-
+#include "src/symbolTable.h"
 
 typedef enum {
     CONTEXT_DEFAULT,
@@ -14,6 +15,7 @@ typedef enum {
 } Context;
 
 static int label_counter = 1;
+static int temp_var_counter = 1;
 static FILE* output_file;
 static Context current_context = CONTEXT_DEFAULT;
 
@@ -23,15 +25,163 @@ char* generate_label() {
     return label;
 }
 
+char* generate_temp_var_name(){
+    char* temp_name = malloc(32);
+    do{
+        sprintf(temp_name, "__internal_temp%d",temp_var_counter++);
+    } while(symtab_lookup(temp_name) != NULL);
+    return temp_name;
+}
+
+Node* create_temp_declaration(char* name, Node* initializer, char* type){
+    Node* id = create_identifier_node(name);
+    Node* decl = create_declaration_node(id, initializer);
+    decl->already_linearized = 1;
+    Node* typeNode = create_value_node(type);
+    DeclaratorsListNode* decl_list = malloc(sizeof(DeclaratorsListNode));
+    decl_list->base.type = DECLARATORS_LIST_NODE;
+    decl_list->base.print = print_declarators_list_node;
+    decl_list->type_specifier = typeNode;
+    decl_list->declarators = malloc(sizeof(Node*));
+    decl_list->declarators[0] = decl;
+    decl_list->count = 1;
+    decl_list->base.is_temp = 1;
+    decl_list->base.already_linearized = 1;
+    return (Node*)decl_list;
+}
+
+int is_simple_expression(Node* expr){
+    if(!expr) return 1;
+    switch (expr->type)
+    {
+    case CONSTANT_NODE:
+    case IDENTIFIER_NODE:
+    case STRING_LITERAL_NODE:
+        return 1;
+    default:
+        return 0;
+    }
+}
+typedef struct {
+    Node** items;
+    int count;
+    int capacity;
+} NodeList;
+
+void append_node(NodeList* list, Node* node){
+    if(list->count >= list->capacity){
+        list->capacity = list->capacity * 2 + 1;
+        list->items = realloc(list->items, list->capacity * sizeof(Node*));
+    }
+    list->items[list->count++] = node;
+}
+char* infer_type(Node* expr){
+    if(!expr) return "__unknown";
+    switch (expr->type){
+        case IDENTIFIER_NODE: {
+            IdentifierNode* id = (IdentifierNode*)expr;
+            Symbol* sym = symtab_lookup(id->name);
+            if(sym && sym->datatype) return sym->datatype;
+            return "__unknown";
+        }
+        case CONSTANT_NODE:{
+            ConstantNode* c = (ConstantNode*)expr;
+            switch (c->const_type)
+            {
+            case CONST_INT: return "int";
+            case CONST_FLOAT: return "float";
+            case CONST_CHAR: return "char";
+            default: return "__unknown";
+            }
+        }
+        case STRING_LITERAL_NODE:{
+            return "char*";
+        }
+        default:
+            return "__unknown";
+    }
+}
+Node* linearize_expression(Node* expr, NodeList* out){
+    switch(expr->type){
+        case CONSTANT_NODE:
+        case STRING_LITERAL_NODE:
+        case IDENTIFIER_NODE:{
+            return expr;
+        }
+        case BINARY_OPERATION_NODE:{
+            BinaryOperationNode* bin = (BinaryOperationNode*)expr;
+            Node* left = linearize_expression(bin->left, out);
+            Node* right = linearize_expression(bin->right, out);
+            Node* new_bin = create_binary_operation_node(bin->op,left, right);
+            char* temp_name = generate_temp_var_name();
+
+            char* typeLeft = infer_type(left);
+            char* typeRight = infer_type(right);
+            char* type = (strcmp(typeLeft, "__unknown") != 0) ? typeLeft : 
+                            (strcmp(typeRight,"__unknown") != 0) ? typeRight : "__unknown";
+            symtab_add(temp_name, SYM_IDENTIFIER, type);
+            Node* decl = create_temp_declaration(temp_name, new_bin,type);
+            append_node(out, decl);
+            
+            return create_identifier_node(temp_name);
+        }
+        case PARENTHESIZED_EXPRESSION_NODE:{
+            return linearize_expression(((ParenthesizedExpressionNode*)expr)->expression, out);
+        }
+        case FUNCTION_CALL_NODE: {
+            FunctionCallNode* call = (FunctionCallNode*)expr;
+
+            int all_args_simple = 1;
+            if(call->arguments->type != EMPTY_STATEMENT_NODE){
+                ArgumentsNode* args = (ArgumentsNode*)call->arguments;
+                for(int i = 0; i < args->count; i++){
+                    if(!is_simple_expression(args->arguments[i])){
+                        all_args_simple = 0;
+                        break;
+                    }
+                }
+            }
+            if(all_args_simple){
+                return expr;
+            }
+            ArgumentsNode* args = (ArgumentsNode*)call->arguments;
+            for(int i = 0; i < args->count; i++){
+                args->arguments[i] = linearize_expression(args->arguments[i], out);
+            }
+            return expr;
+        }
+        case LOGICAL_OPERATION_NODE: {
+            LogicalOperationNode* log = (LogicalOperationNode*)expr;
+            Node* left = linearize_expression(log->left, out);
+            Node* right = linearize_expression(log->right, out);
+            Node* new_log = create_logical_operation_node(left, log->op, right);
+
+            char* temp_name = generate_temp_var_name();
+            symtab_add(temp_name, SYM_IDENTIFIER, "int");
+            Node* decl = create_temp_declaration(temp_name, new_log, "int");
+            append_node(out, decl);
+            return create_identifier_node(temp_name);
+        }
+        default:
+            return expr;
+    }
+}
+
 void generate_code(Node* node){
 
     switch (node->type) {
         case IF_NODE: {
             IfNode* if_node = (IfNode*)node;
+            NodeList temps = {0};
+            Node* simplified_condition = linearize_expression(if_node->condition, &temps);
+            for(int i = 0; i < temps.count; i++){
+                generate_code(temps.items[i]);
+                fprintf(output_file,"\n");
+            }
             char* else_label = generate_label();
             char* end_label = generate_label();
             fprintf(output_file, "if (");
-            generate_code(if_node->condition);
+            generate_code(simplified_condition);
             fprintf(output_file, ") goto %s;\n", else_label);
             if (if_node->else_statement) {
                 generate_code(if_node->else_statement);
@@ -49,13 +199,20 @@ void generate_code(Node* node){
             char* loop_label = generate_label();
             char* end_label = generate_label();
             fprintf(output_file, "%s:\n", loop_label);
-            fprintf(output_file, "if(!(");
-            generate_code(while_node->condition);
-            fprintf(output_file, " )) goto %s", end_label);
-            fprintf(output_file, ";\n");
+            NodeList temps = {0};
+            Node* simplified = linearize_expression(while_node->condition, &temps);
+            for(int i = 0; i < temps.count; i++){
+                generate_code(temps.items[i]);
+                fprintf(output_file,"\n");
+            }
+            char* temp_name = generate_temp_var_name();
+            Node* temp_decl = create_temp_declaration(temp_name,create_unary_operator_expression_node("!",simplified), "int");
+            generate_code(temp_decl);
+            fprintf(output_file,"\n");
+            fprintf(output_file, "if(%s) goto %s;\n",temp_name, end_label);
             generate_code(while_node->body);
-            fprintf(output_file, " goto %s;\n", loop_label);
-            fprintf(output_file, "%s:\n", end_label);
+            fprintf(output_file, "goto %s;\n", loop_label);
+            fprintf(output_file, "%s:", end_label);
             break;
         }
         case DOWHILE_NODE: {
@@ -63,9 +220,16 @@ void generate_code(Node* node){
             DoWhileNode* dw = (DoWhileNode*)node;
             fprintf(output_file, "%s:\n", label_start);
             generate_code(dw->do_statement);
-            fprintf(output_file, "if (");
-            generate_code(dw->condition);
-            fprintf(output_file, ") goto %s;", label_start);
+            NodeList temps = {0};
+            Node* simplified = linearize_expression(dw->condition, &temps);
+            for(int i = 0; i < temps.count; i++){
+                generate_code(temps.items[i]);
+                fprintf(output_file,"\n");
+            }
+            
+            fprintf(output_file, "if(");
+            generate_code(simplified);
+            fprintf(output_file,") goto %s;", label_start);
             free(label_start);
             break;
         }
@@ -291,6 +455,7 @@ void generate_code(Node* node){
             break;
         }
         case INITIALIZERS_LIST_NODE: {
+
             InitializersListNode* list = (InitializersListNode*)node;
             fprintf(output_file, "{");
             for(int i = 0; i < list->count; i++){
@@ -364,8 +529,18 @@ void generate_code(Node* node){
             break;
         }
         case RETURN_NODE: {
-            fprintf(output_file,"return ");
             ReturnNode* return_node = (ReturnNode*)node;
+            if(return_node->expression->type != EMPTY_STATEMENT_NODE){
+                NodeList temps = {0};
+                Node* simplified = linearize_expression(return_node->expression, &temps);
+                for(int i =0; i < temps.count; i++){
+                    generate_code(temps.items[i]);
+                    fprintf(output_file, "\n");
+                }
+                return_node->expression = simplified;
+            }
+            
+            fprintf(output_file,"return ");
             if(return_node->expression->type != EMPTY_STATEMENT_NODE){
                 generate_code(return_node->expression);
             }
@@ -523,16 +698,48 @@ void generate_code(Node* node){
         }
         case DECLARATORS_LIST_NODE: {
             DeclaratorsListNode* decl_list = (DeclaratorsListNode*)node;
-            Context temp = current_context;
-            current_context = CONTEXT_DECLARATORS_LIST;
-            generate_code(decl_list->type_specifier);
-            current_context = temp;
-            for(int i = 0; i < decl_list->count; i++){
-                generate_code(decl_list->declarators[i]);
-                if(i != decl_list->count - 1 && decl_list->count != 1){
-                    fprintf(output_file, ",");
+            if(decl_list->base.is_temp){
+                Context temp = current_context;
+                current_context = CONTEXT_DECLARATORS_LIST;
+                generate_code(decl_list->type_specifier);
+                current_context = temp;
+                for(int i = 0; i < decl_list->count; i++){
+                    DeclarationNode* decl_node = (DeclarationNode*)decl_list->declarators[i];
+                    generate_code(decl_list->declarators[i]);
+                    if(i != decl_list->count - 1 && decl_list->count != 1){
+                        fprintf(output_file, ",");
+                    }
+                }
+            }else{
+                
+                NodeList temps = {0};
+                for(int i = 0; i < decl_list->count; i++){
+                    DeclarationNode* decl_node = (DeclarationNode*)decl_list->declarators[i];
+                    if(!decl_node->base.already_linearized && decl_node->initializer->type != EMPTY_STATEMENT_NODE){
+                        Node* simplified = linearize_expression(decl_node->initializer, &temps);
+                        decl_node->initializer = simplified;
+                        decl_node->base.already_linearized = 1;
+                        
+                    }
+                }
+                for(int j = 0; j < temps.count; j++){
+                    generate_code(temps.items[j]);
+                    fprintf(output_file,"\n");
+                }
+                Context temp = current_context;
+                current_context = CONTEXT_DECLARATORS_LIST;
+                generate_code(decl_list->type_specifier);
+                current_context = temp;
+                for(int i = 0; i < decl_list->count; i++){
+                    generate_code(decl_list->declarators[i]);
+                    if(i != decl_list->count - 1 && decl_list->count != 1){
+                        fprintf(output_file, ",");
+                    }
                 }
             }
+                
+            
+            
             if (current_context == CONTEXT_DEFAULT) {
                 fprintf(output_file, ";");
             }

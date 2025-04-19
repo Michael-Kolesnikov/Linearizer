@@ -78,18 +78,8 @@ string
 postfix_expression
 	: primary_expression { $$ = $1; }
 	| postfix_expression '[' expression ']' { $$ = create_array_expression_node($1, $3); }
-	| postfix_expression '(' ')' {
-		$$ = create_function_call_node($1, create_empty_statement_node());
-		char* type = "function";
-		char* ident = get_declarator_name($1);
-		symtab_set_type(ident, type);
-	}
-	| postfix_expression '(' argument_expression_list ')' {
-		$$ = create_function_call_node($1, $3);
-		char* type = "function";
-		char* ident = get_declarator_name($1);
-		symtab_set_type(ident, type);	
-	}
+	| postfix_expression '(' ')' { $$ = create_function_call_node($1, create_empty_statement_node()); }
+	| postfix_expression '(' argument_expression_list ')' { $$ = create_function_call_node($1, $3); }
 	| postfix_expression '.' IDENTIFIER { $$ = create_member_access_expression_node($1, create_identifier_node($3)); }
 	| postfix_expression POINTER_OP IDENTIFIER { $$ = create_pointer__member_access_expression_node($1,create_identifier_node($3)); }
 	| postfix_expression INCR_OP { $$ = create_postfix_increment_node($1); }
@@ -712,9 +702,9 @@ external_declaration
 function_definition
     : declaration_specifiers declarator compound_statement {
 		$$ = create_function_declaration_node($1,$2,$3);
-		char* type = "function";
-		char* ident = get_declarator_name($2);
-		symtab_set_type(ident, type);
+		// char* type = "function";
+		// char* ident = get_declarator_name($2);
+		// symtab_set_type(ident, type);
 	}
     ;
 

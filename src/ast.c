@@ -1560,6 +1560,9 @@ char* get_declarator_name(Node* node){
         case FUNCTION_DECLARATOR_NODE: {
             return get_declarator_name(((FunctionDeclaratorNode*)node)->declarator);
         }
+        case FUNCTION_CALL_NODE: {
+            return get_declarator_name(((FunctionCallNode*)node)->name);
+        }
         default:
             return NULL;
             break;
