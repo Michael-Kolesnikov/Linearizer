@@ -178,3 +178,45 @@ printf("\n");
 </td>
 </tr>
 </table>
+
+
+## Цикл For
+<table>
+<tr>
+<th>Входная функция</th>
+<th>Линеаризованная функция</th>
+</tr>
+<tr>
+<td>
+  
+```C
+long long factorial(int n) {
+    long long result = 1;
+    for (int i = 1; i <= n; i++) {
+        result *= i;
+    }
+    return result;
+}
+
+```
+</td>
+<td>
+
+```C
+long long factorial(int n){
+long long result = 1;
+int i = 1;
+lbl1:
+int __internal_temp1 = !(i <= n);
+if (__internal_temp1) goto lbl2;
+result *= i;
+i++;
+goto lbl1;
+lbl2:
+return result;
+}
+```
+
+</td>
+</tr>
+</table>
