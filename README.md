@@ -93,6 +93,7 @@ lbl2:
 </tr>
 <tr>
 <td>
+  
 ```C
 void fibonacci_up_to_n(int n) {
     int a = 0, b = 1;
@@ -106,8 +107,10 @@ void fibonacci_up_to_n(int n) {
     printf("\n");
 }
 ```
+
 </td>
 <td>
+  
 ```C
 void fibonacci_up_to_n(int n){
 int a = 0, b = 1;
@@ -124,6 +127,7 @@ lbl2:
 printf("\n");
 }
 ```
+
 </td>
 </tr>
 </table>
@@ -136,6 +140,7 @@ printf("\n");
 </tr>
 <tr>
 <td>
+  
 ```C
 void fibonacci_up_to_n(int n) {
     int a = 0, b = 1;
@@ -148,9 +153,11 @@ void fibonacci_up_to_n(int n) {
     }
     printf("\n");
 }
+
 ```
 </td>
 <td>
+
 ```C
 void fibonacci_up_to_n(int n){
 int a = 0, b = 1;
@@ -167,6 +174,7 @@ lbl2:
 printf("\n");
 }
 ```
+
 </td>
 </tr>
 </table>
