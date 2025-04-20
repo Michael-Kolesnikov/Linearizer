@@ -656,6 +656,17 @@ void generate_code(Node* node){
         }
         case FUNCTION_CALL_NODE: {
             FunctionCallNode* func_call_node = (FunctionCallNode*)node;
+            NodeList temps = {0};
+            if(func_call_node->arguments->type != EMPTY_STATEMENT_NODE){
+                ArgumentsNode* args = (ArgumentsNode*)func_call_node->arguments;
+                for(int i = 0 ; i < args->count; i++){
+                    args->arguments[i] = linearize_expression(args->arguments[i], &temps);
+                }
+                for(int i = 0; i < temps.count; i++){
+                    generate_code(temps.items[i]);
+                    fprintf(output_file,"\n");
+                }
+            }
             generate_code(func_call_node->name);
             fprintf(output_file,"(");
             generate_code(func_call_node->arguments);
@@ -674,9 +685,16 @@ void generate_code(Node* node){
         }
         case ASSIGNMENT_NODE: {
             AssignmentNode* assignment_node = (AssignmentNode*)node;
+            NodeList temps = {0};
+            Node* simplified_right = linearize_expression(assignment_node->right, &temps);
+            for(int i = 0; i < temps.count; i++){
+                generate_code(temps.items[i]);
+                fprintf(output_file,"\n");
+            }
             generate_code(assignment_node->left);
             fprintf(output_file," %s ",assignment_node->op);
-            generate_code(assignment_node->right);
+            generate_code(simplified_right);
+            fprintf(output_file,";");
             break;
         }
         case PREFIX_DECREMENT_NODE: {
