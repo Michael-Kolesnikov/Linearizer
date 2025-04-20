@@ -300,10 +300,14 @@ void generate_code(Node* node){
                     fprintf(output_file,"\n");
                 }
                 char* temp_name = generate_temp_var_name();
-                Node* temp_decl = create_temp_declaration(temp_name,create_unary_operator_expression_node("!",create_parenthesized_expression_node(simplified)), "int");
+                Node* temp_decl = create_temp_declaration(temp_name, create_parenthesized_expression_node(simplified),"int");
+                char* temp_not_name = generate_temp_var_name();
                 generate_code(temp_decl);
-                fprintf(output_file,";\n");
-                fprintf(output_file, "if (%s) goto %s;\n", temp_name, end_label);
+                fprintf(output_file, ";\n");
+                Node* temp_decl_not = create_temp_declaration(temp_not_name,create_unary_operator_expression_node("!",create_identifier_node(temp_name)), "int");
+                generate_code(temp_decl_not);
+                fprintf(output_file, ";\n");
+                fprintf(output_file, "if (%s) goto %s;\n", temp_not_name, end_label);
             }
             current_context = CONTEXT_DEFAULT;
             generate_code(for_node->body);
