@@ -9,6 +9,7 @@ typedef enum {
     CONTEXT_PARAMETERS,
     CONTEXT_COMPOUND,
     CONTEXT_FOR,
+    CONTEXT_WHILE,
     CONTEXT_POINTER,
     CONTEXT_DECLARATORS_LIST,
     CONTEXT_ARRAY_INDEX,
@@ -16,8 +17,10 @@ typedef enum {
 
 static int label_counter = 1;
 static int temp_var_counter = 1;
+static char* current_loop_end_label = "";
 static FILE* output_file;
 static Context current_context = CONTEXT_DEFAULT;
+static int inLoop = 0;
 
 char* generate_label() {
     char* label = (char*)malloc(10 * sizeof(char));
@@ -97,6 +100,28 @@ char* infer_type(Node* expr){
         case STRING_LITERAL_NODE:{
             return "char*";
         }
+        case TERNARY_OPERATOR_NODE:{
+            TernaryOperatorNode* ternary = (TernaryOperatorNode*)expr;
+            return infer_type(ternary->then_statement);
+        }
+        case POINTER_MEMBER_ACCESS_EXPRESSION_NODE: {
+            PointerMemberAccessExpressionNode* point_expr = (PointerMemberAccessExpressionNode*)expr;
+            char* ident = get_declarator_name(point_expr->field_name);
+            Symbol* sym = symtab_lookup(ident);
+            if(sym && sym->datatype) return sym->datatype;
+            return "__unknown";
+        }
+        case MEMBER_ACCESS_EXPRESSION_NODE: {
+            MemberAccessExpressionNode* member_expr = (MemberAccessExpressionNode*)expr;
+            char* ident = get_declarator_name(member_expr->field_name);
+            Symbol* sym = symtab_lookup(ident);
+            if(sym && sym->datatype) return sym->datatype;
+            return "__unknown";
+        }
+        case UNARY_OPERATOR_EXPRESSION_NODE: {
+            UnaryOperatorExpressonNode* unary = (UnaryOperatorExpressonNode*)expr;
+            return infer_type(unary->expression);
+        }
         default:
             return "__unknown";
     }
@@ -114,7 +139,6 @@ Node* linearize_expression(Node* expr, NodeList* out){
             Node* right = linearize_expression(bin->right, out);
             Node* new_bin = create_binary_operation_node(bin->op,left, right);
             char* temp_name = generate_temp_var_name();
-
             char* typeLeft = infer_type(left);
             char* typeRight = infer_type(right);
             char* type = (strcmp(typeLeft, "__unknown") != 0) ? typeLeft : 
@@ -162,6 +186,20 @@ Node* linearize_expression(Node* expr, NodeList* out){
             append_node(out, decl);
             return create_identifier_node(temp_name);
         }
+        case TERNARY_OPERATOR_NODE: {
+            TernaryOperatorNode* ternary = (TernaryOperatorNode*)expr;
+            Node* condition = linearize_expression(ternary->condition, out);
+            Node* then_stm = linearize_expression(ternary->then_statement, out);
+            Node* else_stm = linearize_expression(ternary->else_statement, out);
+            Node* new_ternary = create_ternary_operator_node(condition,then_stm,else_stm);
+            char* ternaryType = infer_type(new_ternary);
+            char* type = (strcmp(ternaryType, "__unknown") != 0) ? ternaryType : "__unknown";
+            char* temp_name = generate_temp_var_name();
+            symtab_add(temp_name, SYM_IDENTIFIER, type);
+            Node* decl = create_temp_declaration(temp_name, new_ternary, type);
+            append_node(out, decl);
+            return create_identifier_node(temp_name);
+        }
         default:
             return expr;
     }
@@ -195,9 +233,11 @@ void generate_code(Node* node){
             break;
         }
         case WHILE_NODE: {
+            inLoop = 1;
             WhileNode* while_node = (WhileNode*)node;
             char* loop_label = generate_label();
             char* end_label = generate_label();
+            current_loop_end_label = strdup(end_label);
             fprintf(output_file, "%s:\n", loop_label);
             NodeList temps = {0};
             Node* simplified = linearize_expression(while_node->condition, &temps);
@@ -206,16 +246,18 @@ void generate_code(Node* node){
                 fprintf(output_file,"\n");
             }
             char* temp_name = generate_temp_var_name();
-            Node* temp_decl = create_temp_declaration(temp_name,create_unary_operator_expression_node("!",simplified), "int");
+            Node* temp_decl = create_temp_declaration(temp_name,create_unary_operator_expression_node("!",create_parenthesized_expression_node(simplified)), "int");
             generate_code(temp_decl);
             fprintf(output_file,"\n");
             fprintf(output_file, "if(%s) goto %s;\n",temp_name, end_label);
             generate_code(while_node->body);
             fprintf(output_file, "goto %s;\n", loop_label);
             fprintf(output_file, "%s:", end_label);
+            inLoop = 0;
             break;
         }
         case DOWHILE_NODE: {
+            inLoop = 1;
             char* label_start = generate_label();
             DoWhileNode* dw = (DoWhileNode*)node;
             fprintf(output_file, "%s:\n", label_start);
@@ -231,9 +273,11 @@ void generate_code(Node* node){
             generate_code(simplified);
             fprintf(output_file,") goto %s;", label_start);
             free(label_start);
+            inLoop = 0;
             break;
         }
         case FOR_NODE: {
+            inLoop = 1;
             ForNode* for_node = (ForNode*)node;
             char* loop_label = generate_label();
             char* end_label = generate_label();
@@ -249,10 +293,17 @@ void generate_code(Node* node){
             fprintf(output_file, "%s:\n", loop_label);
             
             if (((ExpressionStatementNode*)for_node->condition)->expr->type != EMPTY_STATEMENT_NODE) {
-                fprintf(output_file, "int temp = ");
-                generate_code(for_node->condition);
+                NodeList temps = {0};
+                Node* simplified = linearize_expression(for_node->condition, &temps);
+                for(int i = 0; i < temps.count; i++){
+                    generate_code(temps.items[i]);
+                    fprintf(output_file,"\n");
+                }
+                char* temp_name = generate_temp_var_name();
+                Node* temp_decl = create_temp_declaration(temp_name,create_unary_operator_expression_node("!",create_parenthesized_expression_node(simplified)), "int");
+                generate_code(temp_decl);
                 fprintf(output_file,";\n");
-                fprintf(output_file, "if (temp) goto %s;\n", end_label);
+                fprintf(output_file, "if (%s) goto %s;\n", temp_name, end_label);
             }
             current_context = CONTEXT_DEFAULT;
             generate_code(for_node->body);
@@ -266,6 +317,7 @@ void generate_code(Node* node){
             free(loop_label);
             free(end_label);
             current_context = CONTEXT_DEFAULT;
+            inLoop = 0;
             break;
         }
         case ALIGNAS_NODE: {
@@ -570,6 +622,11 @@ void generate_code(Node* node){
             break;
         }
         case BREAK_NODE: {
+            if(inLoop){
+                printf("DSADSAD\n");
+                fprintf(output_file,"goto %s;",current_loop_end_label);
+                break;
+            }
             fprintf(output_file, "break;");
             break;
         }

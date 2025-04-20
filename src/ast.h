@@ -551,4 +551,6 @@ void print_expressions_list_node(Node* node);
 void print_alignof_node(Node* node);
 void print_alignas_node(Node* node);
 char* get_declarator_name(Node* node);
+int is_type_keyword(const char* val);
+void extract_base_type(Node* node, char* buffer, size_t bufsize);
 #endif // AST_H

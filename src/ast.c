@@ -1563,8 +1563,79 @@ char* get_declarator_name(Node* node){
         case FUNCTION_CALL_NODE: {
             return get_declarator_name(((FunctionCallNode*)node)->name);
         }
+        case STRUCT_DECLARATOR_NODE: {
+            return get_declarator_name(((StructDeclaratorNode*)node)->declarator);
+        }
+        case POINTER_MEMBER_ACCESS_EXPRESSION_NODE: {
+            return get_declarator_name(((PointerMemberAccessExpressionNode*)node)->field_name);
+        }
+        case MEMBER_ACCESS_EXPRESSION_NODE: {
+            return get_declarator_name(((MemberAccessExpressionNode*)node)->field_name);
+        }
         default:
             return NULL;
             break;
     }
 }
+
+int is_type_keyword(const char* val){
+    return strcmp(val, "int") == 0 ||
+        strcmp(val, "float") == 0 ||
+        strcmp(val, "double") == 0 ||
+        strcmp(val, "char") == 0 ||
+        strcmp(val, "void") == 0 ||
+        strcmp(val, "long") == 0 ||
+        strcmp(val, "short") == 0 ||
+        strcmp(val, "unsigned") == 0 ||
+        strcmp(val, "signed") == 0 ||
+        strcmp(val, "struct") == 0 ||
+        strcmp(val, "union") == 0;
+}
+void extract_base_type(Node* node, char* buffer, size_t bufsize){
+    buffer[0] = '\0';
+    int should_exit = 0;
+    while(!should_exit){
+        switch(node->type){
+            case WRAPPER_NODE: {
+                WrapperNode* wrap = (WrapperNode*)node;
+                if(wrap->wrapper->type == VALUE_NODE){
+                    ValueNode* val = (ValueNode*)wrap->wrapper;
+                    if(is_type_keyword(val->value)){
+                        strncat(buffer, val->value, bufsize - strlen(buffer) - 1);
+                        strncat(buffer, " ", bufsize - strlen(buffer) - 1);
+                    }
+                }
+                node = wrap->inner_node;
+                break;
+            }
+            case VALUE_NODE: {
+                ValueNode* v = (ValueNode*)node;
+                if(is_type_keyword(v->value)){
+                    strncat(buffer, v->value, bufsize - strlen(buffer) - 1);
+                }
+                should_exit = 1;
+                break;
+            }
+            case STRUCTUNION_NODE:{
+                StructUnionNode* s = (StructUnionNode*)node;
+                if(s->kind->type == VALUE_NODE && s->identifier->type == IDENTIFIER_NODE){
+                    ValueNode* kind = (ValueNode*)s->kind;
+                    IdentifierNode* id = (IdentifierNode*)s->identifier;
+                    snprintf(buffer, bufsize, "%s %s", kind->value, id->name);
+                }
+                should_exit = 1;
+                break;
+            }
+            default: {
+                should_exit = 1;
+                break;
+            }
+        }
+    }
+    size_t len = strlen(buffer);
+    if(len > 0 && buffer[len - 1] == ' '){
+        buffer[len - 1] = '\0';
+    }
+
+}
+

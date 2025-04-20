@@ -244,13 +244,13 @@ declaration
 		DeclaratorsListNode* node = (DeclaratorsListNode*)$2;
 		node->type_specifier = $1;
 		$$ = $2;
+		char typebuffer[64];
+		extract_base_type($1, typebuffer, sizeof(typebuffer));
 		for(int i = 0; i < node->count; i++){
 			char* ident = get_declarator_name(node->declarators[i]);
-			char* type = ((ValueNode*)$1)->value;
-			printf("ident: %s, type: %s\n", ident, type);
-			symtab_set_type(ident, type);
+			symtab_set_type(ident, typebuffer);
 		}
-		}
+	}
 	| static_assert_declaration { $$ = $1; }
     ;
 
@@ -318,8 +318,19 @@ type_specifiers
 
 struct_or_union_specifier
 	: struct_or_union '{' struct_declaration_list '}' { $$ = create_structunion_node($1,create_empty_statement_node(), $3); }
-	| struct_or_union IDENTIFIER '{' struct_declaration_list '}' { $$ = create_structunion_node($1, create_identifier_node($2), $4); }
-	| struct_or_union IDENTIFIER { $$ = create_structunion_node($1,create_identifier_node($2), create_empty_statement_node()); }
+	| struct_or_union IDENTIFIER '{' struct_declaration_list '}' {
+		$$ = create_structunion_node($1, create_identifier_node($2), $4);
+		char typebuffer[64];
+		extract_base_type($1, typebuffer, sizeof(typebuffer));
+		symtab_set_type($2, typebuffer);
+
+		}
+	| struct_or_union IDENTIFIER {
+		$$ = create_structunion_node($1,create_identifier_node($2), create_empty_statement_node());
+		char typebuffer[64];
+		extract_base_type($1, typebuffer, sizeof(typebuffer));
+		symtab_set_type($2, typebuffer);
+		}
 	;
 
 struct_or_union
@@ -348,12 +359,21 @@ struct_declaration
 	| specifier_qualifier_list struct_declarator_list ';' {
 		((DeclaratorsListNode*)$2)->type_specifier = $1;
 		$$ = $2;
+		char typebuffer[64];
+		extract_base_type($1, typebuffer, sizeof(typebuffer));
+		DeclaratorsListNode* node = (DeclaratorsListNode*)$2;
+		
+		for(int i = 0; i < node->count; i++){
+			char* ident = get_declarator_name(node->declarators[i]);
+			symtab_set_type(ident, typebuffer);
+		}
 	}
 	| static_assert_declaration { $$ = $1; }
 	| alignment_specifier specifier_qualifier_list ';' { $$ = create_wrapper_node($1, $2); }
     | alignment_specifier specifier_qualifier_list struct_declarator_list ';' {
 		((DeclaratorsListNode*)$3)->type_specifier = create_wrapper_node($1, $2);
 		$$ = $3;
+		
 	}
     ;
 	;
@@ -505,6 +525,10 @@ parameter_declaration
 		declarators[0] = create_declaration_node($2,create_empty_statement_node());
 		Node* decl_list = create_declarators_list_node(declarators, 1);
 		((DeclaratorsListNode*)decl_list)->type_specifier = $1;
+		char typebuffer[64];
+		extract_base_type($1, typebuffer, sizeof(typebuffer));
+		char* ident = get_declarator_name($2);
+		symtab_set_type(ident, typebuffer);
 		$$ = (Node*)decl_list;
 	}
 	| declaration_specifiers abstract_declarator { $$ = create_wrapper_node($1, $2); }
@@ -702,9 +726,10 @@ external_declaration
 function_definition
     : declaration_specifiers declarator compound_statement {
 		$$ = create_function_declaration_node($1,$2,$3);
-		// char* type = "function";
-		// char* ident = get_declarator_name($2);
-		// symtab_set_type(ident, type);
+		char typebuffer[64];
+		extract_base_type($1, typebuffer, sizeof(typebuffer));
+		char* ident = get_declarator_name($2);
+		symtab_set_type(ident, typebuffer);
 	}
     ;
 
