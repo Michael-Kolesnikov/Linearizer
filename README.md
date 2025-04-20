@@ -207,9 +207,10 @@ long long factorial(int n){
 long long result = 1;
 int i = 1;
 lbl1:
-int __internal_temp1 = !(i <= n);
-if (__internal_temp1) goto lbl2;
-result *= i;
+int __internal_temp1 = (i <= n);
+int __internal_temp2 = !__internal_temp1;
+if (__internal_temp2) goto lbl2;
+result *= i;;
 i++;
 goto lbl1;
 lbl2:
