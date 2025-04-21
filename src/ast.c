@@ -1589,7 +1589,11 @@ int is_type_keyword(const char* val){
         strcmp(val, "unsigned") == 0 ||
         strcmp(val, "signed") == 0 ||
         strcmp(val, "struct") == 0 ||
-        strcmp(val, "union") == 0;
+        strcmp(val, "union") == 0 ||
+        strcmp(val, "_Bool") == 0 ||
+        strcmp(val, "_Complex") == 0 ||
+        strcmp(val, "_Imaginary") == 0 ||
+        strcmp(val, "_Noreturn") == 0;
 }
 void extract_base_type(Node* node, char* buffer, size_t bufsize){
     buffer[0] = '\0';

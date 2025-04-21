@@ -169,6 +169,26 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     return ATOMIC;
 }
 
+<TYPEDEF_STATE>"_Bool" {
+    yylval.str = strdup(yytext);
+    return ATOMIC;
+}
+
+<TYPEDEF_STATE>"_Imaginary" {
+    yylval.str = strdup(yytext);
+    return ATOMIC;
+}
+
+<TYPEDEF_STATE>"_Noreturn" {
+    yylval.str = strdup(yytext);
+    return ATOMIC;
+}
+
+<TYPEDEF_STATE>"_Complex" {
+    yylval.str = strdup(yytext);
+    return ATOMIC;
+}
+
 <TYPEDEF_STATE>"struct" {
     yylval.str = strdup(yytext);
     return STRUCT;
