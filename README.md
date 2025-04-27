@@ -57,9 +57,9 @@ void check_number(int number) {
 
 ```C
 void check_number(int number){
-int __internal_temp1 = number > 0;
+int __internal_temp1 = (number > 0);
 if (__internal_temp1) goto lbl1;
-int __internal_temp2 = number < 0;
+int __internal_temp2 = (number < 0);
 if (__internal_temp2) goto lbl3;
 printf("Число равно нулю.\n");
 goto lbl4;
@@ -69,7 +69,7 @@ lbl4:goto lbl2;
 lbl1:
 printf("Число %d положительное.\n", number);
 int __internal_temp3 = number % 2;
-int __internal_temp4 = __internal_temp3 == 0;
+int __internal_temp4 = (__internal_temp3 == 0);
 if (__internal_temp4) goto lbl5;
 printf("Число %d нечетное.\n", number);
 goto lbl6;
@@ -144,13 +144,19 @@ printf("\n");
 ```C
 void fibonacci_up_to_n(int n) {
     int a = 0, b = 1;
-    
-    while (a <= n) {
+
+    if (a > n) {
+        printf("\n");
+        return;
+    }
+
+    do {
         printf("%d ", a);
         int temp = a;
         a = b;
         b = temp + b;
-    }
+    } while (a <= n);
+
     printf("\n");
 }
 
@@ -161,16 +167,20 @@ void fibonacci_up_to_n(int n) {
 ```C
 void fibonacci_up_to_n(int n){
 int a = 0, b = 1;
+int __internal_temp1 = a > n;
+if (__internal_temp1) goto lbl1;
+goto lbl2;
 lbl1:
-int __internal_temp1 = a <= n;
-int __internal_temp2 = !__internal_temp1;
-if(__internal_temp2) goto lbl2;
+printf("\n");
+return ;
+lbl2:
+lbl3:
 printf("%d ", a);
 int temp = a;
 a = b;
 b = temp + b;
-goto lbl1;
-lbl2:
+int __internal_temp2 = (a <= n);
+if (__internal_temp2) goto lbl3;
 printf("\n");
 }
 ```
@@ -197,7 +207,6 @@ long long factorial(int n) {
     }
     return result;
 }
-
 ```
 </td>
 <td>
@@ -210,7 +219,7 @@ lbl1:
 int __internal_temp1 = (i <= n);
 int __internal_temp2 = !__internal_temp1;
 if (__internal_temp2) goto lbl2;
-result *= i;;
+result *= i;
 i++;
 goto lbl1;
 lbl2:
