@@ -84,7 +84,7 @@ LINTER_FILES = $(SRC_DIR)/*.c $(SRC_DIR)/*.h $(TEST_DIR)/*.c
 
 lint:
 	clang-format -i $(LINTER_FILES)
-
+	
 # Rule to clean up generated files
 clean:
 	rm -f $(TARGET) $(BISON_C) $(BISON_H) $(FLEX_C) $(AST_O) $(CODEGEN_O) $(SYMTAB_O)\
