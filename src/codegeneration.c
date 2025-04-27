@@ -21,7 +21,6 @@ static char* current_loop_end_label = "";
 static FILE* output_file;
 static Context current_context = CONTEXT_DEFAULT;
 static int inLoop = 0;
-
 char* generate_label() {
     char* label = (char*)malloc(10 * sizeof(char));
     sprintf(label, "lbl%d", label_counter++);
@@ -127,6 +126,9 @@ char* infer_type(Node* expr){
     }
 }
 Node* linearize_expression(Node* expr, NodeList* out){
+    if(is_simple_expression(expr)){
+        return expr;
+    }
     switch(expr->type){
         case CONSTANT_NODE:
         case STRING_LITERAL_NODE:
@@ -137,18 +139,48 @@ Node* linearize_expression(Node* expr, NodeList* out){
             BinaryOperationNode* bin = (BinaryOperationNode*)expr;
             Node* left = linearize_expression(bin->left, out);
             Node* right = linearize_expression(bin->right, out);
-            Node* new_bin = create_binary_operation_node(bin->op,left, right);
-            char* temp_name = generate_temp_var_name();
-            char* typeLeft = infer_type(left);
-            char* typeRight = infer_type(right);
-            char* type = (strcmp(typeLeft, "__unknown") != 0) ? typeLeft : 
-                            (strcmp(typeRight,"__unknown") != 0) ? typeRight : "__unknown";
-            symtab_add(temp_name, SYM_IDENTIFIER, type);
-            Node* decl = create_temp_declaration(temp_name, new_bin,type);
-            append_node(out, decl);
             
-            return create_identifier_node(temp_name);
+            if (left->type == BINARY_OPERATION_NODE) {
+                BinaryOperationNode* left_bin = (BinaryOperationNode*)left;
+                
+                Node* temp_left = linearize_expression(left_bin->left, out);
+                Node* temp_right = linearize_expression(left_bin->right, out);
+        
+                char* temp_name = generate_temp_var_name();
+                char* typeLeft = infer_type(temp_left);
+                char* typeRight = infer_type(temp_right);
+                char* type = (strcmp(typeLeft, "__unknown") != 0) ? typeLeft : 
+                                (strcmp(typeRight,"__unknown") != 0) ? typeRight : "__unknown";
+                symtab_add(temp_name, SYM_IDENTIFIER, type);
+                
+                Node* decl = create_temp_declaration(temp_name, create_binary_operation_node(left_bin->op, temp_left, temp_right), type);
+                append_node(out, decl);
+        
+                return create_binary_operation_node(bin->op, create_identifier_node(temp_name), right);
+            } 
+            else if (right->type == BINARY_OPERATION_NODE) {
+                BinaryOperationNode* right_bin = (BinaryOperationNode*)right;
+                
+                Node* temp_left = linearize_expression(right_bin->left, out);
+                Node* temp_right = linearize_expression(right_bin->right, out);
+        
+                char* temp_name = generate_temp_var_name();
+                char* typeLeft = infer_type(temp_left);
+                char* typeRight = infer_type(temp_right);
+                char* type = (strcmp(typeLeft, "__unknown") != 0) ? typeLeft : 
+                                (strcmp(typeRight,"__unknown") != 0) ? typeRight : "__unknown";
+                symtab_add(temp_name, SYM_IDENTIFIER, type);
+                
+                Node* decl = create_temp_declaration(temp_name, create_binary_operation_node(right_bin->op, temp_left, temp_right), type);
+                append_node(out, decl);
+        
+                return create_binary_operation_node(bin->op, left, create_identifier_node(temp_name));
+            } 
+            else {
+                return create_binary_operation_node(bin->op, left, right);
+            }
         }
+        
         case PARENTHESIZED_EXPRESSION_NODE:{
             return linearize_expression(((ParenthesizedExpressionNode*)expr)->expression, out);
         }
@@ -178,14 +210,30 @@ Node* linearize_expression(Node* expr, NodeList* out){
             LogicalOperationNode* log = (LogicalOperationNode*)expr;
             Node* left = linearize_expression(log->left, out);
             Node* right = linearize_expression(log->right, out);
-            Node* new_log = create_logical_operation_node(left, log->op, right);
-
-            char* temp_name = generate_temp_var_name();
-            symtab_add(temp_name, SYM_IDENTIFIER, "int");
-            Node* decl = create_temp_declaration(temp_name, new_log, "int");
-            append_node(out, decl);
-            return create_identifier_node(temp_name);
+        
+            if (!is_simple_expression(left)) {
+                char* temp_name = generate_temp_var_name();
+                symtab_add(temp_name, SYM_IDENTIFIER, "int");
+        
+                Node* decl = create_temp_declaration(temp_name, left, "int");
+                append_node(out, decl);
+        
+                left = create_identifier_node(temp_name);
+            }
+        
+            if (!is_simple_expression(right)) {
+                char* temp_name = generate_temp_var_name();
+                symtab_add(temp_name, SYM_IDENTIFIER, "int");
+        
+                Node* decl = create_temp_declaration(temp_name, right, "int");
+                append_node(out, decl);
+        
+                right = create_identifier_node(temp_name);
+            }
+        
+            return create_logical_operation_node(left, log->op, right);
         }
+        
         case TERNARY_OPERATOR_NODE: {
             TernaryOperatorNode* ternary = (TernaryOperatorNode*)expr;
             Node* condition = linearize_expression(ternary->condition, out);
@@ -206,7 +254,6 @@ Node* linearize_expression(Node* expr, NodeList* out){
 }
 
 void generate_code(Node* node){
-
     switch (node->type) {
         case IF_NODE: {
             IfNode* if_node = (IfNode*)node;
@@ -218,9 +265,18 @@ void generate_code(Node* node){
             }
             char* else_label = generate_label();
             char* end_label = generate_label();
-            fprintf(output_file, "if (");
-            generate_code(simplified_condition);
-            fprintf(output_file, ") goto %s;\n", else_label);
+
+            if(simplified_condition->type == LOGICAL_OPERATION_NODE || simplified_condition->type == BINARY_OPERATION_NODE || simplified_condition->type == UNARY_OPERATOR_EXPRESSION_NODE){
+                char* temp_name = generate_temp_var_name();
+                Node* temp_decl = create_temp_declaration(temp_name, create_parenthesized_expression_node(simplified_condition),"int");
+                generate_code(temp_decl);
+                fprintf(output_file,"\n");
+                fprintf(output_file,"if (%s) goto %s;\n",temp_name, else_label);
+            }else{
+                fprintf(output_file,"if (");
+                generate_code(simplified_condition);
+                fprintf(output_file,") goto %s;\n", else_label);
+            }
             if (if_node->else_statement) {
                 generate_code(if_node->else_statement);
             }
@@ -246,10 +302,15 @@ void generate_code(Node* node){
                 fprintf(output_file,"\n");
             }
             char* temp_name = generate_temp_var_name();
-            Node* temp_decl = create_temp_declaration(temp_name,create_unary_operator_expression_node("!",create_parenthesized_expression_node(simplified)), "int");
+            Node* temp_decl = create_temp_declaration(temp_name, create_parenthesized_expression_node(simplified),"int");
+            char* temp_not_name = generate_temp_var_name();
             generate_code(temp_decl);
+            fprintf(output_file, "\n");
+            Node* temp_decl_not = create_temp_declaration(temp_not_name,create_unary_operator_expression_node("!",create_identifier_node(temp_name)), "int");
+            generate_code(temp_decl_not);
+                
             fprintf(output_file,"\n");
-            fprintf(output_file, "if(%s) goto %s;\n",temp_name, end_label);
+            fprintf(output_file, "if(%s) goto %s;\n",temp_not_name, end_label);
             generate_code(while_node->body);
             fprintf(output_file, "goto %s;\n", loop_label);
             fprintf(output_file, "%s:", end_label);
@@ -268,10 +329,18 @@ void generate_code(Node* node){
                 generate_code(temps.items[i]);
                 fprintf(output_file,"\n");
             }
+            if(simplified->type == LOGICAL_OPERATION_NODE || simplified->type == BINARY_OPERATION_NODE || simplified->type == UNARY_OPERATOR_EXPRESSION_NODE){
+                char* temp_name = generate_temp_var_name();
+                Node* temp_decl = create_temp_declaration(temp_name, create_parenthesized_expression_node(simplified),"int");
+                generate_code(temp_decl);
+                fprintf(output_file,"\n");
+                fprintf(output_file,"if (%s) goto %s;",temp_name, label_start);
+            }else{
+                fprintf(output_file,"if (");
+                generate_code(simplified);
+                fprintf(output_file,") goto %s;", label_start);
+            }
             
-            fprintf(output_file, "if(");
-            generate_code(simplified);
-            fprintf(output_file,") goto %s;", label_start);
             free(label_start);
             inLoop = 0;
             break;
@@ -698,7 +767,7 @@ void generate_code(Node* node){
             generate_code(assignment_node->left);
             fprintf(output_file," %s ",assignment_node->op);
             generate_code(simplified_right);
-            fprintf(output_file,";");
+            // fprintf(output_file,";");
             break;
         }
         case PREFIX_DECREMENT_NODE: {
