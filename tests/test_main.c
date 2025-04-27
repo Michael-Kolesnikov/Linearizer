@@ -1,6 +1,6 @@
 #include <check.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 Suite* codegen_test_function_declaration(void);
 Suite* codegen_test_function_call(void);
 Suite* codegen_test_unary_operator(void);

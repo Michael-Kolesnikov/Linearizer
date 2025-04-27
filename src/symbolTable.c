@@ -1,11 +1,12 @@
 #include "symbolTable.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define HASH_SIZE 1000
 
-static SymbolNode *table[HASH_SIZE]; 
+static SymbolNode *table[HASH_SIZE];
 
 unsigned int hash(const char *str) {
     unsigned int hash_value = 0;
@@ -57,9 +58,9 @@ void symtab_add(const char *name, SymbolType type, const char *datatype) {
     table[index] = new_node;
 }
 
-void symtab_set_type(const char* name, const char* datatype){
+void symtab_set_type(const char *name, const char *datatype) {
     Symbol *s = symtab_lookup(name);
-    if(s) s->datatype = strdup(datatype);
+    if (s) s->datatype = strdup(datatype);
 }
 
 Symbol *symtab_lookup(const char *name) {
@@ -81,8 +82,7 @@ void symtab_print() {
     for (int i = 0; i < HASH_SIZE; i++) {
         SymbolNode *node = table[i];
         while (node) {
-            printf("  %s (%s) - type: %s\n",
-                   node->symbol->name,
+            printf("  %s (%s) - type: %s\n", node->symbol->name,
                    node->symbol->type == SYM_TYPEDEF ? "typedef" : "identifier",
                    node->symbol->datatype ? node->symbol->datatype : "unknown");
             node = node->next;

@@ -1,33 +1,34 @@
 #include <check.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "ast.h"
 
 extern void generate_code_from_ast(Node* node, FILE* output);
 extern char* read_file_to_string(FILE* file);
-START_TEST(test_array_declaration_in_parameters)
-{
+START_TEST(test_array_declaration_in_parameters) {
     Node* return_type = create_value_node("int");
     Node** params = (Node**)malloc(1 * sizeof(Node*));
-    Node* array = create_array_declaration_node(create_identifier_node("array"),create_empty_statement_node());
+    Node* array = create_array_declaration_node(create_identifier_node("array"), create_empty_statement_node());
     Node** declarator = (Node**)malloc(1 * sizeof(Node*));
-    declarator[0] = create_declaration_node(array,create_empty_statement_node());
+    declarator[0] = create_declaration_node(array, create_empty_statement_node());
     Node* parameter = create_declarators_list_node(declarator, 1);
     ((DeclaratorsListNode*)parameter)->type_specifier = create_value_node("float");
     params[0] = parameter;
     Node* parameters_node = create_parameters_node(params, 1);
-    Node* function_declarator = create_function_declarator_node(create_identifier_node("function_name"),parameters_node);
+    Node* function_declarator =
+        create_function_declarator_node(create_identifier_node("function_name"), parameters_node);
     Node** statements = (Node**)malloc(1 * sizeof(Node*));
     statements[0] = create_empty_statement_node();
     Node* function_body = create_compound_statement_node(statements, 1);
-    Node* root = create_function_declaration_node(return_type,function_declarator,create_empty_statement_node());
-    
+    Node* root = create_function_declaration_node(return_type, function_declarator, create_empty_statement_node());
+
     FILE* output = tmpfile();
     ck_assert_ptr_nonnull(output);
     generate_code_from_ast(root, output);
 
     char* result = read_file_to_string(output);
-    const char* expected = 
+    const char* expected =
         "int function_name(float array[]){\n"
         "}\n";
     ck_assert_str_eq(result, expected);
@@ -37,13 +38,12 @@ START_TEST(test_array_declaration_in_parameters)
 }
 END_TEST
 
-START_TEST(test_array_declaration)
-{
-    Node* array = create_array_declaration_node(create_identifier_node("array"),create_constant_int_node(10));
+START_TEST(test_array_declaration) {
+    Node* array = create_array_declaration_node(create_identifier_node("array"), create_constant_int_node(10));
 
     Node** declarator = (Node**)malloc(1 * sizeof(Node*));
-    declarator[0] = create_declaration_node(array,create_empty_statement_node());
-    Node* root = create_declarators_list_node(declarator,1);
+    declarator[0] = create_declaration_node(array, create_empty_statement_node());
+    Node* root = create_declarators_list_node(declarator, 1);
     ((DeclaratorsListNode*)root)->type_specifier = create_value_node("float");
 
     FILE* output = tmpfile();
@@ -51,8 +51,7 @@ START_TEST(test_array_declaration)
     generate_code_from_ast(root, output);
 
     char* result = read_file_to_string(output);
-    const char* expected = 
-        "float array[10];";
+    const char* expected = "float array[10];";
     ck_assert_str_eq(result, expected);
 
     fclose(output);
@@ -60,12 +59,9 @@ START_TEST(test_array_declaration)
 }
 END_TEST
 
-START_TEST(test_multidimensional_array_declaration)
-{
-    
-
-    Node* dim1 = create_array_declaration_node(create_identifier_node("x"),create_constant_int_node(1));
-    Node* dim2 = create_array_declaration_node(dim1,create_constant_int_node(2));
+START_TEST(test_multidimensional_array_declaration) {
+    Node* dim1 = create_array_declaration_node(create_identifier_node("x"), create_constant_int_node(1));
+    Node* dim2 = create_array_declaration_node(dim1, create_constant_int_node(2));
     Node** declarator = (Node**)malloc(1 * sizeof(Node*));
     declarator[0] = create_declaration_node(dim2, create_empty_statement_node());
     Node* root = create_declarators_list_node(declarator, 1);
@@ -76,8 +72,7 @@ START_TEST(test_multidimensional_array_declaration)
     generate_code_from_ast(root, output);
 
     char* result = read_file_to_string(output);
-    const char* expected = 
-        "int x[1][2];";
+    const char* expected = "int x[1][2];";
     ck_assert_str_eq(result, expected);
 
     fclose(output);

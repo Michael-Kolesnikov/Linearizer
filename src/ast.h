@@ -1,5 +1,6 @@
 #ifndef AST_H
 #define AST_H
+#include <stddef.h>
 typedef enum NodeType {
     IDENTIFIER_NODE,
     CONSTANT_NODE,
@@ -63,33 +64,33 @@ typedef enum NodeType {
     ALIGNAS_NODE,
 } NodeType;
 
-typedef struct Node{
+typedef struct Node {
     NodeType type;
     void (*print)(struct Node*);
     int is_temp;
     int already_linearized;
 } Node;
 
-typedef struct IdentifierNode{
+typedef struct IdentifierNode {
     Node base;
     char* name;
 } IdentifierNode;
 
-typedef struct ConstantNode{
+typedef struct ConstantNode {
     Node base;
     enum {
         CONST_INT,
         CONST_FLOAT,
         CONST_CHAR,
     } const_type;
-    union{
+    union {
         int i_value;
         float f_value;
         char c_value;
     } value;
 } ConstantNode;
 
-typedef struct BinaryOperationNode{
+typedef struct BinaryOperationNode {
     Node base;
     Node* left;
     Node* right;
@@ -105,7 +106,7 @@ typedef struct {
 typedef struct {
     Node base;
     Node* left;
-    char*  op;
+    char* op;
     Node* right;
 } AssignmentNode;
 
@@ -231,25 +232,25 @@ typedef struct {
     char* unary_operator;
 } UnaryOperatorExpressonNode;
 
-typedef struct{
+typedef struct {
     Node base;
     Node* point;
     Node* declarator;
 } PointerNode;
 
-typedef struct{
+typedef struct {
     Node base;
     Node** parameters;
     int count;
 } ParametersNode;
 
-typedef struct{
+typedef struct {
     Node base;
     Node* declarator;
     Node* parameters;
 } FunctionDeclaratorNode;
 
-typedef struct{
+typedef struct {
     Node base;
     Node* initialization;
     Node* condition;
@@ -428,12 +429,12 @@ typedef struct {
     Node* expr;
 } AlignasNode;
 
-Node *create_identifier_node(char* name);
-Node *create_constant_int_node(int value);
-Node *create_constant_float_node(float value);
-Node *create_constant_char_node(char value);
-Node *create_binary_operation_node(char* op, Node* left, Node* right);
-Node *create_declaration_node(Node* identifier, Node* initializer);
+Node* create_identifier_node(char* name);
+Node* create_constant_int_node(int value);
+Node* create_constant_float_node(float value);
+Node* create_constant_char_node(char value);
+Node* create_binary_operation_node(char* op, Node* left, Node* right);
+Node* create_declaration_node(Node* identifier, Node* initializer);
 Node* create_assignment_node(Node* left, char* op, Node* right);
 Node* create_logical_operation_node(Node* left, char* op, Node* right);
 Node* create_if_node(Node* condition, Node* then_statement, Node* else_statement);
@@ -553,4 +554,4 @@ void print_alignas_node(Node* node);
 char* get_declarator_name(Node* node);
 int is_type_keyword(const char* val);
 void extract_base_type(Node* node, char* buffer, size_t bufsize);
-#endif // AST_H
+#endif  // AST_H
