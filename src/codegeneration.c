@@ -409,16 +409,16 @@ void generate_code(Node* node) {
             break;
         }
         case ALIGNAS_NODE: {
-            AlignasNode* alignas = (AlignasNode*)node;
+            AlignasNode* alignasNode = (AlignasNode*)node;
             fprintf(output_file, "alignas(");
-            generate_code(alignas->expr);
+            generate_code(alignasNode->expr);
             fprintf(output_file, ")");
             break;
         }
         case ALIGNOF_NODE: {
-            AlignofNode* alignof = (AlignofNode*)node;
+            AlignofNode* alignofNode = (AlignofNode*)node;
             fprintf(output_file, "alignof(");
-            generate_code(alignof->type_name);
+            generate_code(alignofNode->type_name);
             fprintf(output_file, ")");
             break;
         }
@@ -433,12 +433,12 @@ void generate_code(Node* node) {
             break;
         }
         case STATIC_ASSERT_NODE: {
-            StaticAssertNode* static_assert = (StaticAssertNode*)node;
+            StaticAssertNode* static_assertNode = (StaticAssertNode*)node;
             fprintf(output_file, "static_assert(");
-            generate_code(static_assert->expr);
-            if (static_assert->message->type != EMPTY_STATEMENT_NODE) {
+            generate_code(static_assertNode->expr);
+            if (static_assertNode->message->type != EMPTY_STATEMENT_NODE) {
                 fprintf(output_file, ", ");
-                generate_code(static_assert->message);
+                generate_code(static_assertNode->message);
             }
             fprintf(output_file, ");");
             break;
