@@ -28,12 +28,7 @@ AST_O = $(BUILD_DIR)/ast.o
 CODEGEN_O = $(BUILD_DIR)/codegeneration.o
 SYMTAB_O = $(BUILD_DIR)/symbolTable.o
 # Test source files
-TEST_FUNC_DECL = $(TEST_DIR)/function_declaration_test.c
-TEST_FUNC_CALL = $(TEST_DIR)/function_call_test.c
-TEST_UNARY = $(TEST_DIR)/unary_operator_test.c
-TEST_ARRAY_DECL = $(TEST_DIR)/array_declaration_test.c
 TEST_MAIN = $(TEST_DIR)/test_main.c
-TEST_OBJ = $(TEST_ARRAY_DECL:.c=.o) $(TEST_UNARY:.c=.o) $(TEST_FUNC_CALL:.c=.o) $(TEST_FUNC_DECL:.c=.o) $(TEST_MAIN:.c=.o)
 
 
 DIRS = $(BIN_DIR) $(BUILD_DIR)
@@ -66,6 +61,11 @@ $(CODEGEN_O): $(CODEGEN_FILE)
 
 $(SYMTAB_O): $(SYMTAB_FILE)
 	$(CC) $(CFLAGS) -c $(SYMTAB_FILE) -o $(SYMTAB_O)
+
+# Auto find all tests .c files
+TEST_SRC := $(wildcard $(TEST_DIR)/*_test.c)
+TEST_OBJ := $(patsubst %.c,%.o,$(TEST_SRC)) $(TEST_MAIN:.c=.o)
+
 
 # Rule to build unit tests
 unit_tests: $(TEST_OBJ) $(AST_O) $(CODEGEN_O) $(SYMTAB_O)

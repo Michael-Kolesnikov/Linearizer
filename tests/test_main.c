@@ -5,6 +5,9 @@ Suite* codegen_test_function_declaration(void);
 Suite* codegen_test_function_call(void);
 Suite* codegen_test_unary_operator(void);
 Suite* codegen_test_array_declaration(void);
+Suite* codegen_test_binary_operation(void);
+Suite* codegen_test_if_statement(void);
+Suite* codegen_test_while_loop(void);
 
 char* read_file_to_string(FILE* file) {
     fseek(file, 0, SEEK_END);
@@ -23,11 +26,13 @@ char* read_file_to_string(FILE* file) {
 
 int main(void) {
     SRunner* sr = srunner_create(NULL);
-
     srunner_add_suite(sr, codegen_test_function_declaration());
     srunner_add_suite(sr, codegen_test_function_call());
     srunner_add_suite(sr, codegen_test_unary_operator());
     srunner_add_suite(sr, codegen_test_array_declaration());
+    srunner_add_suite(sr, codegen_test_binary_operation());
+    srunner_add_suite(sr, codegen_test_if_statement());
+    srunner_add_suite(sr, codegen_test_while_loop());
     srunner_run_all(sr, CK_NORMAL);
     int failed = srunner_ntests_failed(sr);
     srunner_free(sr);
